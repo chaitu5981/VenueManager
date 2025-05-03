@@ -1,0 +1,72 @@
+import { StyleSheet, Text, View } from "react-native";
+import { IconButton, RadioButton } from "react-native-paper";
+import CustomTextInput from "./CustomTextInput";
+import Typo from "./Typo";
+import { useState } from "react";
+const SubVenueForm = ({ onDelete, index, item, onChange, errors }) => {
+  const capitalize = (name) => name.charAt(0).toUpperCase() + name.slice(1);
+
+  return (
+    <View style={styles.subVenueContainer}>
+      <IconButton
+        style={{
+          marginLeft: "auto",
+          marginVertical: 0,
+          marginRight: 0,
+        }}
+        icon="close"
+        size={30}
+        iconColor="#59B0C1"
+        onPress={onDelete}
+      />
+      <View style={{ gap: 5 }}>
+        <Typo size={16}>Choose Sub Venue Type</Typo>
+        <RadioButton.Group
+          onValueChange={(value) => onChange("type", value, index)}
+          value={item.type}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <RadioButton value="hall" />
+              <Text>Hall</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <RadioButton value="lawn" />
+              <Text>Lawn</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <RadioButton value="others" />
+              <Text>Others</Text>
+            </View>
+          </View>
+        </RadioButton.Group>
+        <CustomTextInput
+          label={`${capitalize(item.type)} Name`}
+          value={item.name}
+          error={errors.name}
+          onChange={(v) => onChange("name", v, index)}
+        />
+        <CustomTextInput
+          label={"Capacity"}
+          keyboardType="numeric"
+          value={item.capacity}
+          error={errors.capacity}
+          onChange={(v) => onChange("capacity", v, index)}
+        />
+      </View>
+    </View>
+  );
+};
+export default SubVenueForm;
+const styles = StyleSheet.create({
+  subVenueContainer: {
+    backgroundColor: "#F8F8F8",
+    padding: 12,
+    borderRadius: 10,
+  },
+});
