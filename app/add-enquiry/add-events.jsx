@@ -1,9 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import Header from "../../components/Header";
 import ScreenWrapper from "../../components/ScreenWrapper";
-import { useLocalSearchParams } from "expo-router";
 import Typo from "../../components/Typo";
-import { useState } from "react";
 import { useAddEnquiryContext } from "./_layout";
 import { formatDate } from "../../utils/helper";
 import EventForm from "../../components/EventForm";

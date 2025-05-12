@@ -5,11 +5,11 @@ import { useState } from "react";
 import {
   accommodationTypes,
   bookingTypes,
-  colors,
   diningMenu,
   eventTypes,
   venueTypes,
 } from "../data/constants";
+import { colors } from "../data/theme";
 import { HelperText, RadioButton } from "react-native-paper";
 import CustomSelect from "./CustomSelect";
 import CustomTextInput from "./CustomTextInput";

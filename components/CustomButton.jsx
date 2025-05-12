@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
-import { colors } from "../data/constants";
-const CustomButton = ({ text, onPress, mode }) => {
+import { colors } from "../data/theme";
+const CustomButton = ({ text, onPress, mode, loading }) => {
   return (
     <Button
+      loading={loading}
       mode={mode || "contained"}
       style={{
         backgroundColor: colors.primary,

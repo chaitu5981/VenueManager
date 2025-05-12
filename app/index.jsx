@@ -1,19 +1,17 @@
-import {
-  Image,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import Typo from "../components/Typo";
-import Button from "../components/Button";
 import { useRouter } from "expo-router";
 import ScreenWrapper from "../components/ScreenWrapper";
-import { useAuthContext } from "../contexts/AuthProvider";
 import CustomButton from "../components/CustomButton";
+import { useDispatch } from "react-redux";
+import { fetchCountries } from "../store/locationSlice";
+import { useEffect } from "react";
 export default function Index() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchCountries());
+  }, []);
   return (
     <>
       <ScreenWrapper>

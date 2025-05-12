@@ -31,13 +31,11 @@ export const currencies = [
   { value: "usd", label: "$ United States Dollar" },
   { value: "eur", label: "€ Euro" },
 ];
-
-export const colors = {
-  primary: "#FEB449",
-  secondary: "#54AEBE",
-  yellow: "#FFFAF4",
-};
-
+export const businessLabelTypes = [
+  { value: "GST", label: "GST" },
+  { value: "PAN", label: "PAN" },
+  { value: "VAT", label: "VAT" },
+];
 export const months = [
   { label: "Jan", value: "0" },
   { label: "Feb", value: "1" },

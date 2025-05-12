@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Header from "../../components/Header";
 import { useState } from "react";
-import { colors, months } from "../../data/constants";
+import { colors, months } from "../../data/theme";
 import { Calendar } from "react-native-calendars";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -25,13 +25,19 @@ const Home = () => {
     { key: "second", title: "All Enquiries" },
   ];
   const firstRoute = () => (
-    <Calendar
-      current={formatDate(selectedDate)}
-      onDayPress={(day) => setSelectedDate(new Date(day.dateString))}
-      markedDates={{
-        [formatDate(selectedDate)]: { selected: true },
-      }}
-    />
+    <View style={{ gap: 20, paddingHorizontal: 10 }}>
+      <Calendar
+        current={formatDate(selectedDate)}
+        onDayPress={(day) => setSelectedDate(new Date(day.dateString))}
+        markedDates={{
+          [formatDate(selectedDate)]: { selected: true },
+        }}
+      />
+      <CustomButton
+        text={"Add Enquiry"}
+        onPress={() => router.push("/add-enquiry")}
+      />
+    </View>
   );
 
   const secondRoute = () => (
@@ -79,7 +85,7 @@ const Home = () => {
           </TouchableOpacity>
           {/* <Header /> */}
         </View>
-        <View style={{ height: 370 }}>
+        <View style={{ height: 470 }}>
           <TabView
             navigationState={{ index, routes }}
             onIndexChange={setIndex}
@@ -88,10 +94,6 @@ const Home = () => {
             renderTabBar={tabBar}
           />
         </View>
-        <CustomButton
-          text={"Add Enquiry"}
-          onPress={() => router.push("/add-enquiry")}
-        />
       </Drawer>
     </View>
   );

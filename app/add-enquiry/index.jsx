@@ -32,7 +32,7 @@ const AddEnquiry = () => {
       newErrors.name = "Please enter name";
       isValid = false;
     }
-    if (isNaN(Number(phone)) || phone.trim().length !== 1) {
+    if (isNaN(Number(phone)) || phone.trim().length !== 10) {
       newErrors.phone = "Please enter valid phone number";
       isValid = false;
     }
