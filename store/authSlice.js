@@ -25,12 +25,14 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async (userData, thunkApi) => {
     try {
+      console.log(userData);
       const { data } = await axios.post(
         "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/login",
         userData
       );
       return data;
     } catch (error) {
+      console.log(error);
       return thunkApi.rejectWithValue("Internal Error");
     }
   }
@@ -63,13 +65,15 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.data;
+        if (action.payload.status_code == 200) {
+          const { status_code, ...rest } = action.payload;
+          state.user = rest;
+        }
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.user = null;
-        state.error = action.payload.data.message;
       });
   },
 });

@@ -3,7 +3,17 @@ import { IconButton, RadioButton } from "react-native-paper";
 import CustomTextInput from "./CustomTextInput";
 import Typo from "./Typo";
 import { useState } from "react";
-const SubVenueForm = ({ onDelete, index, item, onChange, errors }) => {
+import CustomSelect from "./CustomSelect";
+import { subVenueStatus } from "../data/constants";
+const SubVenueForm = ({
+  onDelete,
+  index,
+  item,
+  validateName,
+  validateCapacity,
+  onChange,
+  errors,
+}) => {
   const capitalize = (name) => name.charAt(0).toUpperCase() + name.slice(1);
 
   return (
@@ -19,7 +29,7 @@ const SubVenueForm = ({ onDelete, index, item, onChange, errors }) => {
         iconColor="#59B0C1"
         onPress={onDelete}
       />
-      <View style={{ gap: 5 }}>
+      <View style={{ gap: 8 }}>
         <Typo size={16}>Choose Sub Venue Type</Typo>
         <RadioButton.Group
           onValueChange={(value) => onChange("type", value, index)}
@@ -49,14 +59,20 @@ const SubVenueForm = ({ onDelete, index, item, onChange, errors }) => {
           label={`${capitalize(item.type)} Name`}
           value={item.name}
           error={errors.name}
-          onChange={(v) => onChange("name", v, index)}
+          onChange={(v) => onChange("name", v, index, validateName)}
         />
         <CustomTextInput
           label={"Capacity"}
           keyboardType="numeric"
           value={item.capacity}
           error={errors.capacity}
-          onChange={(v) => onChange("capacity", v, index)}
+          onChange={(v) => onChange("capacity", v, index, validateCapacity)}
+        />
+        <CustomSelect
+          label={"Status"}
+          value={item.status}
+          onSelect={(v) => onChange("status", v, index)}
+          options={subVenueStatus}
         />
       </View>
     </View>

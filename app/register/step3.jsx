@@ -1,66 +1,101 @@
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
-import { Ionicons } from "@expo/vector-icons";
 import Stepper from "../../components/Stepper";
 import Typo from "../../components/Typo";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useState } from "react";
 import CustomButton from "../../components/CustomButton";
 import SubVenueForm from "../../components/SubVenueForm";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Header from "../../components/Header";
+import { Toast } from "toastify-react-native";
+import axios from "axios";
 
 const Step3 = () => {
-  const [subVenues, setSubVenues] = useState([]);
-  const [errors, setErrors] = useState([]);
+  const [subVenues, setSubVenues] = useState([
+    { type: "hall", name: "", capacity: "", status: "Active" },
+  ]);
+  const [errors, setErrors] = useState([{ name: "", capacity: "" }]);
+  const [loading, setLoading] = useState(false);
+  const { userId, venueId } = useLocalSearchParams();
   const router = useRouter();
   const addSubVenue = () => {
-    setSubVenues((prev) => [...prev, { type: "hall", name: "", capacity: "" }]);
+    setSubVenues((prev) => [
+      ...prev,
+      { type: "hall", name: "", capacity: "", status: "Active" },
+    ]);
     setErrors((prev) => [...prev, { name: "", capacity: "" }]);
   };
 
   const deleteSubVenue = (index) => {
-    setSubVenues((prev) => prev.filter((sub, i) => i !== index));
-    setErrors((prev) => prev.filter((sub, i) => i !== index));
+    if (subVenues.length > 1) {
+      setSubVenues((prev) => prev.filter((sub, i) => i !== index));
+      setErrors((prev) => prev.filter((sub, i) => i !== index));
+    }
   };
 
-  const handleSubmit = () => {
-    let isError = false;
+  const validateName = (v) => (!v.trim() ? "Enter Valid Name" : "");
+  const validateCapacity = (v) =>
+    Number(v.trim()) <= 0 || isNaN(v.trim()) ? "Enter Valid Capacity" : "";
+  const handleSubmit = async () => {
+    let isValid = true;
     subVenues.forEach((subVenue, index) => {
       const newErrors = { name: "", capacity: "" };
-      let isValid = true;
-      if (!subVenue.name.trim()) {
-        newErrors.name = "Please enter valid name";
-        isValid = false;
-      }
-      if (isNaN(Number(subVenue.capacity)) || Number(subVenue.capacity) <= 0) {
-        newErrors.capacity = "Please enter valid capacity";
-        isValid = false;
-      }
+      newErrors.name = validateName(subVenue.name);
+      newErrors.capacity = validateCapacity(subVenue.capacity);
+      if (newErrors.name || newErrors.capacity) isValid = false;
       setErrors((prev) =>
         prev.map((errs, i) => {
           if (i == index) return { ...newErrors };
           else return errs;
         })
       );
-      if (!isValid) isError = true;
     });
-    if (!isError) {
-      router.push("register/success");
+    if (isValid) {
+      const subVenueData = {
+        user_id: userId,
+        venue_id: venueId,
+        sub_venues: [],
+      };
+      subVenues.forEach((subVenue) => {
+        subVenueData.sub_venues.push({
+          sub_venue_name: subVenue.name,
+          sub_venue_capacity: subVenue.capacity,
+          sub_venue_status: subVenue.status,
+        });
+      });
+      try {
+        setLoading(true);
+        const { data } = await axios.post(
+          "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/subVenueRegistration",
+          subVenueData
+        );
+        if (data.status_code == 200) {
+          console.log(data);
+          Toast.success(data.data.message);
+          router.replace("/register/success");
+        }
+      } catch (error) {
+        Toast.error("Internal Error");
+      } finally {
+        setLoading(false);
+      }
     }
   };
-  const setSubVenueData = (field, value, index) => {
+
+  const setSubVenue = (field, value, index, validator) => {
     const newSubVenues = subVenues.map((subVenue, i) => {
       if (i == index) return { ...subVenue, [field]: value };
       else return subVenue;
     });
     setSubVenues(newSubVenues);
+    if (validator)
+      setErrors((prev) =>
+        prev.map((errs, i) => {
+          if (i == index) return { ...errs, [field]: validator(value) };
+          else return errs;
+        })
+      );
   };
   return (
     <View style={{ flexGrow: 1 }}>
@@ -94,12 +129,18 @@ const Step3 = () => {
               item={item}
               index={index}
               errors={errors[index]}
+              validateName={validateName}
+              validateCapacity={validateCapacity}
               onDelete={() => deleteSubVenue(index)}
-              onChange={setSubVenueData}
+              onChange={setSubVenue}
             />
           )}
         />
-        <CustomButton text={"Submit"} onPress={handleSubmit} />
+        <CustomButton
+          text={"Submit"}
+          onPress={handleSubmit}
+          loading={loading}
+        />
       </ScreenWrapper>
     </View>
   );

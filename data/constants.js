@@ -1,31 +1,25 @@
 export const venueTypes = [
-  { value: "convention hall", label: "Convention Hall" },
-  { value: "hotel-banquet hall", label: "Hotel-Banquet Hall" },
-  { value: "resort", label: "Resort" },
-  { value: "function hall", label: "Function Hall" },
-  { value: "club house", label: "Club House" },
-  { value: "farm house", label: "Farm House" },
-  { value: "villas", label: "Villas" },
-  { value: "others", label: "Others" },
+  { value: "Convention Hall", label: "Convention Hall" },
+  { value: "Hotel-Banquet Hall", label: "Hotel-Banquet Hall" },
+  { value: "Resort", label: "Resort" },
+  { value: "Function Hall", label: "Function Hall" },
+  { value: "Club House", label: "Club House" },
+  { value: "Farm House", label: "Farm House" },
+  { value: "Villas", label: "Villas" },
+  { value: "Others", label: "Others" },
 ];
 
-export const countries = [
-  { value: "india", label: "India" },
-  { value: "sriLanka", label: "Sri Lanka" },
-  { value: "nepal", label: "Nepal" },
+export const subVenueStatus = [
+  {
+    value: "Active",
+    label: "Active",
+  },
+  {
+    value: "Inactive",
+    label: "Inactive",
+  },
 ];
 
-export const states = [
-  { value: "andhraPradesh", label: "Andhra Pradesh" },
-  { value: "telangana", label: "Telangana" },
-  { value: "karnataka", label: "Karnataka" },
-];
-
-export const cities = [
-  { value: "vijayawada", label: "Vijayawada" },
-  { value: "kurnool", label: "Kurnool" },
-  { value: "tirupati", label: "Tirupati" },
-];
 export const currencies = [
   { value: "inr", label: "₹ Indian Rupee" },
   { value: "usd", label: "$ United States Dollar" },

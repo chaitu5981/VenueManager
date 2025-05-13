@@ -52,12 +52,27 @@ const index = () => {
           Toast.error(res.message);
           if (res.pending == "venue") {
             router.dismissTo("/");
-            router.replace("/register/step2");
+            router.replace({
+              pathname: "/register/step2",
+              params: {
+                userId: res.pendingdata.user_id,
+              },
+            });
+          }
+          if (res.pending == "subvenue") {
+            router.dismissTo("/");
+            router.replace({
+              pathname: "/register/step3",
+              params: {
+                userId: res.pendingdata.user_id,
+                venueId: res.pendingdata.venue_id,
+              },
+            });
           }
         }
       }
       if (loginUser.rejected.match(result)) {
-        Toast.error(result.payload.data.message);
+        Toast.error(result.payload);
         setFormData({
           email: "",
           password: "",

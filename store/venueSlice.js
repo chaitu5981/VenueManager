@@ -18,7 +18,7 @@ export const registerVenue = createAsyncThunk(
       return data;
     } catch (error) {
       console.log(error);
-      return thunkApi.rejectWithValue(error.message);
+      return thunkApi.rejectWithValue("Internal Error");
     }
   }
 );

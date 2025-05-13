@@ -9,20 +9,16 @@ import {
 } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import Typo from "../../components/Typo";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import CustomTextInput from "../../components/CustomTextInput";
 import { businessLabelTypes, venueTypes } from "../../data/constants";
 import CustomSelect from "../../components/CustomSelect";
-import { currencies } from "../../data/constants";
 import CustomButton from "../../components/CustomButton";
 import Stepper from "../../components/Stepper";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Header from "../../components/Header";
 import axios from "axios";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import { registerVenue as registerVenueApi } from "../../store/venueSlice";
 import { Toast } from "toastify-react-native";
 const emptyErrors = {
   name: "",
@@ -58,11 +54,11 @@ const step2 = () => {
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
   const router = useRouter();
   const locationState = useSelector((state) => state.location);
-  const authState = useSelector((state) => state.auth);
-  const venueState = useSelector((state) => state.venue);
+  const { userId } = useLocalSearchParams();
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchStates = async () => {
@@ -120,9 +116,11 @@ const step2 = () => {
       "currency_code"
     ];
     try {
-      const result = await axios.post(
-        registerVenueApi({
-          user_id: authState.user.user_id,
+      setLoading(true);
+      const { data } = await axios.post(
+        "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/venueRegistration",
+        {
+          user_id: userId,
           venue_name: name,
           venue_type: type,
           country_code: code,
@@ -137,13 +135,20 @@ const step2 = () => {
           business_label: businessLabel,
           business_number: businessNumber,
           website_url: url,
-        })
+        }
       );
-      
+      if (data.status_code == 200) {
+        const venueId = data.data.data;
+        Toast.success(data.data.message);
+        router.dismissTo("/");
+        router.replace({
+          pathname: "register/step3",
+          params: { userId, venueId },
+        });
+      } else Toast.error(data.message);
     } catch (error) {
-      
+      Toast.error("Internal Error");
     }
-   
   };
 
   const validateName = (v) => (!v.trim() ? "Please enter valid Name" : "");
@@ -400,11 +405,7 @@ const step2 = () => {
             }}
           />
         </View>
-        <CustomButton
-          onPress={handleSubmit}
-          text={"Next"}
-          loading={venueState.loading}
-        />
+        <CustomButton onPress={handleSubmit} text={"Next"} loading={loading} />
       </ScreenWrapper>
     </KeyboardAvoidingView>
   );
