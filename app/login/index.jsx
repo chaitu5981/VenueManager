@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import Header from "../../components/Header";
 import Typo from "../../components/Typo";
@@ -50,32 +50,48 @@ const index = () => {
           router.replace("tabs");
         } else {
           Toast.warn(res.message);
-          if (res.pending == "otp") {
-            router.replace({
-              pathname: "/otp",
-              params: {
-                userId: res.pendingdata.user_id,
-                email: formData.email,
-                source: "register",
+          if (
+            res.pending == "otp" ||
+            res.pending == "venue" ||
+            res.pending == "subvenue"
+          ) {
+            Alert.alert("Alert", res.message, [
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => console.log("Cancel"),
               },
-            });
-          }
-          if (res.pending == "venue") {
-            router.replace({
-              pathname: "/register/step2",
-              params: {
-                userId: res.pendingdata.user_id,
+              {
+                text: "Confirm",
+                style: "default",
+                onPress: () => {
+                  if (res.pending == "otp")
+                    router.replace({
+                      pathname: "/otp",
+                      params: {
+                        userId: res.pendingdata.user_id,
+                        email: formData.email,
+                        source: "register",
+                      },
+                    });
+                  if (res.pending == "venue")
+                    router.replace({
+                      pathname: "/register/step2",
+                      params: {
+                        userId: res.pendingdata.user_id,
+                      },
+                    });
+                  if (res.pending == "subvenue")
+                    router.replace({
+                      pathname: "/register/step3",
+                      params: {
+                        userId: res.pendingdata.user_id,
+                        venueId: res.pendingdata.venue_id,
+                      },
+                    });
+                },
               },
-            });
-          }
-          if (res.pending == "subvenue") {
-            router.replace({
-              pathname: "/register/step3",
-              params: {
-                userId: res.pendingdata.user_id,
-                venueId: res.pendingdata.venue_id,
-              },
-            });
+            ]);
           }
         }
       }

@@ -72,6 +72,7 @@ const CustomSelect = ({
                   nestedScrollEnabled
                   data={filtered}
                   keyExtractor={(item, i) => i}
+                  keyboardShouldPersistTaps="handled"
                   ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
                   renderItem={({ item }) => (
                     <TouchableOpacity

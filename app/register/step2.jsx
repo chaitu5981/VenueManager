@@ -141,7 +141,7 @@ const step2 = () => {
         const venueId = data.data.data;
         Toast.success(data.data.message);
         router.dismissTo("/");
-        router.replace({
+        router.push({
           pathname: "register/step3",
           params: { userId, venueId },
         });

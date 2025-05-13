@@ -42,7 +42,7 @@ const OTP = () => {
           Toast.success(data.message);
           if (source == "register") {
             router.dismissTo("/");
-            router.replace({
+            router.push({
               pathname: "/register/step2",
               userId,
             });
