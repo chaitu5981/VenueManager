@@ -20,7 +20,7 @@ const OTPForm = ({
       <View style={{ flexGrow: 1, gap: 15, alignItems: "center" }}>
         <Typo size={20}>Enter OTP</Typo>
         <View>
-          <Typo size={18} color={"gray"}>
+          <Typo size={18} color={"gray"} style={{ textAlign: "center" }}>
             Kindly Enter the OTP sent to {email}
           </Typo>
           <Typo size={18} color={"gray"}></Typo>

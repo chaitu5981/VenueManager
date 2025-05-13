@@ -4,8 +4,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import ScreenWrapper from "../components/ScreenWrapper";
 import OTPForm from "../components/OTPForm";
 import { useDispatch, useSelector } from "react-redux";
-import { verifyOtp as verifyOtpApi } from "../store/authSlice";
-import { resendOtp as resendOtpApi } from "../store/authSlice";
 import { Toast } from "toastify-react-native";
 import axios from "axios";
 const OTP = () => {
@@ -13,7 +11,6 @@ const OTP = () => {
   const router = useRouter();
   const { email, userId, source } = useLocalSearchParams();
   const dispatch = useDispatch();
-  const authState = useSelector((state) => state.auth);
   const otpRef = useRef(null);
   const [resendOtpLoading, setResendOtpLoading] = useState(false);
   const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);

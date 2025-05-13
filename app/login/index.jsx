@@ -49,9 +49,18 @@ const index = () => {
           router.dismissTo("/");
           router.replace("tabs");
         } else {
-          Toast.error(res.message);
+          Toast.warn(res.message);
+          if (res.pending == "otp") {
+            router.replace({
+              pathname: "/otp",
+              params: {
+                userId: res.pendingdata.user_id,
+                email: formData.email,
+                source: "register",
+              },
+            });
+          }
           if (res.pending == "venue") {
-            router.dismissTo("/");
             router.replace({
               pathname: "/register/step2",
               params: {
@@ -60,7 +69,6 @@ const index = () => {
             });
           }
           if (res.pending == "subvenue") {
-            router.dismissTo("/");
             router.replace({
               pathname: "/register/step3",
               params: {
