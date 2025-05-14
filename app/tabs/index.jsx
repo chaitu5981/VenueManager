@@ -8,7 +8,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Typo from "../../components/Typo";
 import { Drawer } from "react-native-drawer-layout";
 import DrawerContent from "../../components/DrawerContent";
-import { ScrollView } from "react-native";
 import CustomButton from "../../components/CustomButton";
 import { useRouter } from "expo-router";
 import { formatDate } from "../../utils/helper";

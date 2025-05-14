@@ -1,76 +1,121 @@
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
-import Typo from "../components/Typo";
+import { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSharedValue } from "react-native-reanimated";
+import Carousel, { Pagination } from "react-native-reanimated-carousel";
+import { colors } from "../data/theme";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
-import ScreenWrapper from "../components/ScreenWrapper";
-import CustomButton from "../components/CustomButton";
-import { useDispatch } from "react-redux";
-import { fetchCountries } from "../store/locationSlice";
-import { useEffect } from "react";
-export default function Index() {
+const carouselItems = [
+  require("../assets/Intro1.png"),
+  require("../assets/Intro2.png"),
+  require("../assets/Intro3.png"),
+  require("../assets/Intro4.png"),
+  require("../assets/Intro5.png"),
+  require("../assets/Intro6.png"),
+];
+const { width, height } = Dimensions.get("window");
+const Index = () => {
+  const progress = useSharedValue(0);
   const router = useRouter();
-  const dispatch = useDispatch();
+  const ref = useRef(null);
+  const handleNext = () => {
+    if (progress.value < 5)
+      ref.current?.scrollTo({ index: progress.value + 1, animated: true });
+    else router.replace("index1");
+  };
+  const [showSplash, setShowSplash] = useState(true);
   useEffect(() => {
-    dispatch(fetchCountries());
+    setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
   }, []);
   return (
-    <>
-      <ScreenWrapper>
-        <View style={styles.container}>
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <Image source={require("../assets/logo.png")} style={styles.logo} />
-            <Typo size={40} weight={500}>
-              VENUE
-            </Typo>
-            <Typo size={20} style={{ letterSpacing: 4 }}>
-              MANAGER
-            </Typo>
-          </View>
-          <View style={{ gap: 30, alignItems: "center" }}>
-            <View>
-              <Typo size={20} position="center">
-                Manage your Venue
-              </Typo>
-              <Typo size={20} position="center">
-                Under Fingertips!
-              </Typo>
-            </View>
-            <View>
-              <Typo color={"#5c5c5c"} position="center">
-                Bookings | Appointments
-              </Typo>
-              <Typo color={"#5c5c5c"} position="center">
-                Follow ups | Events | Price Proposals
-              </Typo>
-            </View>
-            <CustomButton
-              text={"Sign Up/Register"}
-              onPress={() => router.push("register")}
+    <View style={{ flex: 1, width: "100%" }}>
+      {showSplash ? (
+        <Image
+          source={require("../assets/splash.png")}
+          style={{ height: "100%", width: "100%" }}
+        />
+      ) : (
+        <View style={{ flex: 1, width: "100%" }}>
+          <Carousel
+            ref={ref}
+            width={width}
+            height={height}
+            loop={false}
+            onProgressChange={progress}
+            data={carouselItems}
+            renderItem={({ item, index }) => (
+              <View style={{ flex: 1 }}>
+                <Image
+                  source={item}
+                  style={{ width, height, resizeMode: "cover" }}
+                />
+              </View>
+            )}
+          />
+          <View style={styles.buttons}>
+            <Pagination.Custom
+              progress={progress}
+              data={carouselItems}
+              dotStyle={styles.dotStyle}
+              activeDotStyle={styles.activeDotStyle}
+              containerStyle={{ gap: 6 }}
             />
-            <View style={{ flexDirection: "row", justifyContent: "center" }}>
-              <Typo size={16}>Already a member? </Typo>
-              <TouchableOpacity onPress={() => router.push("login")}>
-                <Typo size={16} color={"#64B7C5"}>
-                  Login
-                </Typo>
-              </TouchableOpacity>
-            </View>
           </View>
+          <TouchableOpacity
+            style={styles.nextBtnContainer}
+            onPress={handleNext}
+          >
+            <View style={styles.nextBtn}>
+              <FontAwesome6 name="arrow-right-long" size={24} color="white" />
+            </View>
+          </TouchableOpacity>
         </View>
-      </ScreenWrapper>
-    </>
+      )}
+    </View>
   );
-}
-
+};
+export default Index;
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingVertical: 100,
-    paddingHorizontal: 50,
+  buttons: {
+    position: "absolute",
+    left: 50,
+    bottom: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  logo: {
-    width: 100,
-    height: 100,
+  nextBtnContainer: {
+    position: "absolute",
+    bottom: 45,
+    right: 50,
+  },
+  dotStyle: {
+    width: 13,
+    height: 13,
+    borderRadius: 100,
+    backgroundColor: colors.primary,
+  },
+  activeDotStyle: {
+    width: 35,
+    height: 13,
+    borderRadius: 50,
+    overflow: "hidden",
+    backgroundColor: colors.secondary,
+  },
+  nextBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 100,
+    backgroundColor: colors.blue,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
