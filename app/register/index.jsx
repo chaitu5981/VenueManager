@@ -1,4 +1,5 @@
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -100,19 +101,37 @@ const Step1 = () => {
         })
       );
       if (registerUser.fulfilled.match(result)) {
-        console.log("Hi");
-        router.push({
-          pathname: "/otp",
-          params: {
-            userId: result.payload.data.user_id,
-            email: formData.email,
-            source: "register",
-          },
-        });
+        const res = result.payload;
+        if (!res.isEmailAlreadyExist && res.status_code == 200) {
+          Toast.success(
+            "OTP sent successfully on your registered email / mobile no"
+          );
+          router.replace({
+            pathname: "register/otp",
+            params: {
+              userId: res.user_id,
+              email: formData.email,
+              source: "register",
+            },
+          });
+        }
+        if (res.isEmailAlreadyExist) {
+          Alert.alert("Alert", "User already registered.Do you want to Login", [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            {
+              text: "Confirm",
+              style: "default",
+              onPress: () => router.replace("/login"),
+            },
+          ]);
+        }
         setFormData(initialFormData);
       }
       if (registerUser.rejected.match(result)) {
-        Toast.error(result.payload.data.message);
+        Toast.error("Internal Error");
       }
     }
   };

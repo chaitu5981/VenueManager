@@ -12,6 +12,7 @@ import Carousel, { Pagination } from "react-native-reanimated-carousel";
 import { colors } from "../data/theme";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
+import Typo from "../components/Typo";
 const carouselItems = [
   require("../assets/Intro1.png"),
   require("../assets/Intro2.png"),
@@ -78,6 +79,12 @@ const Index = () => {
               <FontAwesome6 name="arrow-right-long" size={24} color="white" />
             </View>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.skipBtn}
+            onPress={() => router.replace("index1")}
+          >
+            <Typo size={20}>Skip</Typo>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -117,5 +124,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blue,
     justifyContent: "center",
     alignItems: "center",
+  },
+  skipBtn: {
+    position: "absolute",
+    top: 50,
+    right: 50,
   },
 });
