@@ -35,6 +35,7 @@ const RootLayout = () => {
               <StatusBar barStyle={"dark-content"} />
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="index" />
+                <Stack.Screen name="index1" />
                 <Stack.Screen name="register" />
                 <Stack.Screen name="otp" />
               </Stack>

@@ -56,8 +56,7 @@ const Success = () => {
           text={"Continue"}
           onPress={() => {
             router.dismissAll();
-            router.dismiss();
-            router.replace("tabs");
+            router.replace("/login");
           }}
         />
       </View>

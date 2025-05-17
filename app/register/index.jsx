@@ -107,7 +107,7 @@ const Step1 = () => {
             "OTP sent successfully on your registered email / mobile no"
           );
           router.replace({
-            pathname: "register/otp",
+            pathname: "/otp",
             params: {
               userId: res.user_id,
               email: formData.email,

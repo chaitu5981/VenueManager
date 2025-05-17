@@ -46,8 +46,8 @@ const index = () => {
         const res = result.payload;
         if (res.status_code == 200) {
           Toast.success("User logged in Successfully");
-          router.dismissTo("/");
-          router.replace("tabs");
+          router.dismissAll();
+          router.replace("/tabs");
         } else {
           Toast.warn(res.message);
           if (

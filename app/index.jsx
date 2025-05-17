@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -22,13 +22,24 @@ const carouselItems = [
   require("../assets/Intro6.png"),
 ];
 const { width, height } = Dimensions.get("window");
+
+const CarouselImage = memo(({ source }) => (
+  <Image source={source} style={{ width, height, resizeMode: "cover" }} />
+));
+const renderItem = ({ item }) => (
+  <View style={{ flex: 1 }}>
+    <CarouselImage source={item} />
+  </View>
+);
+
 const Index = () => {
   const progress = useSharedValue(0);
   const router = useRouter();
   const ref = useRef(null);
   const handleNext = () => {
-    if (progress.value < 5)
-      ref.current?.scrollTo({ index: progress.value + 1, animated: true });
+    const currentIndex = Math.round(progress.value);
+    if (currentIndex < 5)
+      ref.current?.scrollTo({ index: currentIndex + 1, animated: true });
     else router.replace("index1");
   };
   const [showSplash, setShowSplash] = useState(true);
@@ -37,6 +48,7 @@ const Index = () => {
       setShowSplash(false);
     }, 2000);
   }, []);
+
   return (
     <View style={{ flex: 1, width: "100%" }}>
       {showSplash ? (
@@ -53,14 +65,9 @@ const Index = () => {
             loop={false}
             onProgressChange={progress}
             data={carouselItems}
-            renderItem={({ item, index }) => (
-              <View style={{ flex: 1 }}>
-                <Image
-                  source={item}
-                  style={{ width, height, resizeMode: "cover" }}
-                />
-              </View>
-            )}
+            renderItem={renderItem}
+            scrollAnimationDuration={300}
+            mode="normal"
           />
           <View style={styles.buttons}>
             <Pagination.Custom
