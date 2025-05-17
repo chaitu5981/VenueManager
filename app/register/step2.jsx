@@ -59,7 +59,6 @@ const step2 = () => {
   const router = useRouter();
   const locationState = useSelector((state) => state.location);
   const { userId } = useLocalSearchParams();
-  const dispatch = useDispatch();
   useEffect(() => {
     const fetchStates = async () => {
       setStates([]);
@@ -95,8 +94,8 @@ const step2 = () => {
     };
     fetchCities();
   }, [venueInfo.state]);
-
   const registerVenue = async () => {
+    console.log("in register Venue", userId);
     const {
       name,
       code,

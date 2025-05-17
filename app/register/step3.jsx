@@ -73,6 +73,7 @@ const Step3 = () => {
         if (data.status_code == 200) {
           console.log(data);
           Toast.success(data.data.message);
+
           router.replace("/register/success");
         }
       } catch (error) {

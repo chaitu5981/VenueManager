@@ -41,10 +41,12 @@ const OTP = () => {
         if (data.status_code == 200) {
           Toast.success(data.message);
           if (source == "register") {
-            router.dismissTo("/");
+            router.dismiss();
             router.push({
               pathname: "/register/step2",
-              userId,
+              params: {
+                userId,
+              },
             });
           } else {
             router.replace({
