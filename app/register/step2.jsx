@@ -1,15 +1,7 @@
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Keyboard, KeyboardAvoidingView, StyleSheet, View } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import Typo from "../../components/Typo";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomTextInput from "../../components/CustomTextInput";
 import { businessLabelTypes, venueTypes } from "../../data/constants";
 import CustomSelect from "../../components/CustomSelect";
@@ -20,6 +12,7 @@ import Header from "../../components/Header";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Toast } from "toastify-react-native";
+import { fetchCities, fetchStates } from "../../store/locationSlice";
 const emptyErrors = {
   name: "",
   type: "",
@@ -34,6 +27,12 @@ const emptyErrors = {
   businessNumber: "",
 };
 const step2 = () => {
+  const { editing = false } = useLocalSearchParams();
+  const {
+    user,
+    venue,
+    loading: userLoading,
+  } = useSelector((state) => state.user);
   const [venueInfo, setVenueInfo] = useState({
     name: "",
     phone: "",
@@ -50,50 +49,78 @@ const step2 = () => {
     businessNumber: "",
   });
   const [errors, setErrors] = useState(emptyErrors);
-  const [statesLoading, setStatesLoading] = useState(false);
-  const [citiesLoading, setCitiesLoading] = useState(false);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef(null);
+  const [addCityLoading, setAddCityLoading] = useState(false);
+  const ref1 = useRef(0);
+  const ref2 = useRef(0);
+  const ref3 = useRef(0);
   const router = useRouter();
   const locationState = useSelector((state) => state.location);
   const { userId } = useLocalSearchParams();
+  const dispatch = useDispatch();
   useEffect(() => {
-    const fetchStates = async () => {
-      setStates([]);
-      try {
-        setStatesLoading(true);
-        const { data } = await axios(
-          `https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/stateList?country_id=${venueInfo.country.id}`
-        );
-        setStates(data.data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setStatesLoading(false);
-      }
-    };
-    fetchStates();
+    if (venueInfo.country?.id) {
+      console.log("Hi");
+      dispatch(fetchStates(venueInfo.country.id));
+    }
   }, [venueInfo.country]);
 
   useEffect(() => {
-    const fetchCities = async () => {
-      setCities([]);
-      try {
-        setCitiesLoading(true);
-        const { data } = await axios(
-          `https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/cityList?state_id=${venueInfo.state.id}`
-        );
-        setCities(data.data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setCitiesLoading(false);
+    if (venueInfo.state?.id) {
+      dispatch(fetchCities(venueInfo.state.id));
+    }
+  }, [venueInfo.state]);
+  useEffect(() => {
+    const getInitialVenue = async () => {
+      if (editing) {
+        if (ref1.current == 0) {
+          ref1.current = 1;
+          const country = locationState.countries.find(
+            (c) => c.cid == venue.country
+          );
+          console.log(venue, "before initial setVenue");
+          console.log(country, "initial country");
+          setVenueInfo({
+            name: venue.venue_name,
+            phone: venue.venue_mobile_no,
+            email: venue.venue_email,
+            type: venue.venue_type,
+            code: venue.country_code,
+            address: venue.address,
+            pincode: venue.pincode,
+            country: { id: country.cid, name: country.country_name },
+            state: {},
+            city: {},
+            url: venue.website_url,
+            businessLabel: venue.business_label,
+            businessNumber: venue.business_number,
+          });
+        }
+        if (ref2.current == 0) {
+          const state = locationState.states.find((s) => s.id == venue.state);
+          if (state) {
+            ref2.current = 1;
+            setVenueInfo({
+              ...venueInfo,
+              state: { id: state.id, name: state.state },
+              city: {},
+            });
+          }
+        }
+        if (ref3.current == 0) {
+          const city = locationState.cities.find((c) => c.id == venue.city);
+          if (city) {
+            ref3.current = 1;
+            setVenueInfo({
+              ...venueInfo,
+              city: { id: city.id, name: city.city },
+            });
+          }
+        }
       }
     };
-    fetchCities();
-  }, [venueInfo.state]);
+    getInitialVenue();
+  }, [editing, venue, locationState.states, locationState.cities]);
   const registerVenue = async () => {
     console.log("in register Venue", userId);
     const {
@@ -114,39 +141,59 @@ const step2 = () => {
     const currency = locationState.countries.find((c) => c.cid === country.id)[
       "currency_code"
     ];
+    const venueToSend = {
+      venue_name: name,
+      venue_type: type,
+      country_code: code,
+      venue_mobile_no: phone,
+      venue_email: email,
+      currency,
+      country: country.id,
+      state: state.id,
+      city: city.id,
+      address,
+      pincode,
+      business_label: businessLabel,
+      business_number: businessNumber,
+      website_url: url,
+    };
     try {
       setLoading(true);
-      const { data } = await axios.post(
-        "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/venueRegistration",
-        {
-          user_id: userId,
-          venue_name: name,
-          venue_type: type,
-          country_code: code,
-          venue_mobile_no: phone,
-          venue_email: email,
-          currency,
-          country: country.id,
-          state: state.id,
-          city: city.id,
-          address,
-          pincode,
-          business_label: businessLabel,
-          business_number: businessNumber,
-          website_url: url,
+      if (!editing) {
+        const { data } = await axios.post(
+          "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/venueRegistration",
+          {
+            user_id: userId,
+            ...venueToSend,
+          }
+        );
+        if (data.status_code == 200) {
+          const venueId = data.data.data;
+          Toast.success(data.data.message);
+          router.dismissTo("/");
+          router.push({
+            pathname: "register/step3",
+            params: { userId, venueId },
+          });
+        } else Toast.error(data.message);
+      } else {
+        const { data } = await axios.post(
+          "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/updateVenueRegistration",
+          {
+            venue_id: venue.venue_id,
+            ...venueToSend,
+          }
+        );
+        if (data.status_code == 200) {
+          Toast.success(data.message);
+          await dispatch(getUserInfo(user.user_id));
+          router.back();
         }
-      );
-      if (data.status_code == 200) {
-        const venueId = data.data.data;
-        Toast.success(data.data.message);
-        router.dismissTo("/");
-        router.push({
-          pathname: "register/step3",
-          params: { userId, venueId },
-        });
-      } else Toast.error(data.message);
+      }
     } catch (error) {
       Toast.error("Internal Error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -187,6 +234,29 @@ const step2 = () => {
 
   const validateBusinessNumber = (v) =>
     !v.trim() ? "Please enter Business Number" : "";
+
+  const addCity = async (city) => {
+    console.log(city, venueInfo.state.id, venueInfo.country.id);
+    try {
+      setAddCityLoading(true);
+      const { data } = await axios.post(
+        "https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/addCity",
+        {
+          cityName: city,
+          stateID: venueInfo.state.id.toString(),
+          countryID: venueInfo.country.id.toString(),
+        }
+      );
+      if (data.status_code == 200) {
+        Toast.success(data.data);
+        await fetchCities();
+      } else Toast.error("City could not be added");
+    } catch (error) {
+      Toast.error("Internal Error");
+    } finally {
+      setAddCityLoading(false);
+    }
+  };
   const handleSubmit = () => {
     const nameErr = validateName(venueInfo.name);
     const phoneErr = validatePhone(venueInfo.phone);
@@ -233,10 +303,10 @@ const step2 = () => {
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <Header showBackBtn />
       <Stepper step={2} />
-      <ScreenWrapper scrollRef={scrollRef}>
+      <ScreenWrapper>
         <View>
           <Typo size={20} weight={700}>
-            Venue Registration
+            Venue Registrations
           </Typo>
           <Typo size={15} weight={500}>
             Add Below Details
@@ -321,20 +391,21 @@ const step2 = () => {
                 ...venueInfo,
                 country: v,
                 state: {},
+                city: {},
               });
               setErrors({ ...errors, country: validateCountry(v) });
             }}
           />
           <CustomSelect
             label="State"
-            loading={statesLoading}
+            loading={locationState.loading}
             error={errors.state}
             searchable
-            options={states.map((s) => ({
+            options={locationState.states.map((s) => ({
               value: { id: s.id, name: s.state },
               label: s.state,
             }))}
-            value={venueInfo.state.name}
+            value={venueInfo.state?.name}
             onSelect={(v) => {
               setVenueInfo({ ...venueInfo, state: v, city: {} });
               setErrors({ ...errors, state: validateState(v) });
@@ -342,17 +413,19 @@ const step2 = () => {
           />
           <CustomSelect
             label="City"
-            loading={citiesLoading}
+            loading={locationState.loading}
+            addMissing={addCity}
+            addMissingLoading={addCityLoading}
             error={errors.city}
             searchable
-            options={cities.map((c) => ({
+            options={locationState.cities.map((c) => ({
               value: {
                 id: c.id,
                 name: c.city,
               },
               label: c.city,
             }))}
-            value={venueInfo.city.name}
+            value={venueInfo.city?.name}
             onSelect={(v) => {
               setVenueInfo({ ...venueInfo, city: v });
               setErrors({ ...errors, city: validateCity(v) });

@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -13,6 +13,10 @@ import { colors } from "../data/theme";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import Typo from "../components/Typo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { getUserInfo, setUser } from "../store/userSlice";
+import { fetchCountries } from "../store/locationSlice";
 const carouselItems = [
   require("../assets/Intro1.png"),
   require("../assets/Intro2.png"),
@@ -36,6 +40,8 @@ const Index = () => {
   const progress = useSharedValue(0);
   const router = useRouter();
   const ref = useRef(null);
+  const dispatch = useDispatch();
+
   const handleNext = () => {
     const currentIndex = Math.round(progress.value);
     if (currentIndex < 5)
@@ -43,10 +49,31 @@ const Index = () => {
     else router.replace("index1");
   };
   const [showSplash, setShowSplash] = useState(true);
+  const fetchUserId = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    // await AsyncStorage.removeItem("userId");
+    return userId;
+  };
+  const fetchUserInfo = async (userId) => {
+    const res = await dispatch(getUserInfo(userId));
+    if (res.payload.status_code == 200) {
+      router.dismissAll();
+      router.replace("/tabs");
+    }
+  };
   useEffect(() => {
-    setTimeout(() => {
-      setShowSplash(false);
-    }, 2000);
+    const checkUser = async () => {
+      await fetchUserId();
+      const userId = await fetchUserId();
+      if (userId) {
+        fetchUserInfo(userId);
+      } else
+        setTimeout(() => {
+          setShowSplash(false);
+        }, 2000);
+    };
+    checkUser();
+    dispatch(fetchCountries());
   }, []);
 
   return (

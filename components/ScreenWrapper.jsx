@@ -8,12 +8,11 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { View, Text } from "react-native";
-const ScreenWrapper = ({ children, customStyle, scrollRef }) => {
+const ScreenWrapper = ({ children, customStyle }) => {
   return (
     <View style={[{ flex: 1 }]}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.container, customStyle]}
           showsVerticalScrollIndicator={false}

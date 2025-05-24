@@ -42,15 +42,15 @@ const SubVenueForm = ({
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <RadioButton value="hall" />
+              <RadioButton value="Hall" />
               <Text>Hall</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <RadioButton value="lawn" />
+              <RadioButton value="Lawn" />
               <Text>Lawn</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <RadioButton value="others" />
+              <RadioButton value="Others" />
               <Text>Others</Text>
             </View>
           </View>

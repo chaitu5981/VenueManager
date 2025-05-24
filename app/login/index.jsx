@@ -3,13 +3,15 @@ import ScreenWrapper from "../../components/ScreenWrapper";
 import Header from "../../components/Header";
 import Typo from "../../components/Typo";
 import CustomTextInput from "../../components/CustomTextInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TextInput } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../store/authSlice";
+import { getUserInfo, loginUser } from "../../store/userSlice";
 import { Toast } from "toastify-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 const index = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -20,9 +22,10 @@ const index = () => {
     password: "",
   });
   const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
-  const authState = useSelector((state) => state.auth);
+  const userState = useSelector((state) => state.user);
   const validateEmail = (v) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(v)) return "Enter Valid Email";
@@ -33,29 +36,36 @@ const index = () => {
     if (v.length < 6) return "Password Should be at least 6 Characters";
     else return "";
   };
+
   const handleSubmit = async () => {
     const emailErr = validateEmail(formData.email);
     const passwordErr = validatePassword(formData.password);
     setErrors({ email: emailErr, password: passwordErr });
 
     if (!emailErr && !passwordErr) {
-      const result = await dispatch(
-        loginUser({ username: formData.email, password: formData.password })
-      );
-      if (loginUser.fulfilled.match(result)) {
-        const res = result.payload;
-        if (res.status_code == 200) {
-          Toast.success("User logged in Successfully");
-          router.dismissAll();
-          router.replace("/tabs");
+      try {
+        setLoading(true);
+        const { data } = await axios.post(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/login`,
+          { username: formData.email, password: formData.password }
+        );
+        if (data.status_code == 200) {
+          await AsyncStorage.setItem("userId", data.user_id);
+          const res = await dispatch(getUserInfo(data.user_id));
+          if (res.payload.status_code == 200) {
+            router.dismissAll();
+            router.replace("/tabs");
+            Toast.success("User logged in Successfully");
+          }
         } else {
-          Toast.warn(res.message);
+          Toast.warn(data.message);
+          const userId = data.pending.user_id;
           if (
-            res.pending == "otp" ||
-            res.pending == "venue" ||
-            res.pending == "subvenue"
+            data.pending == "otp" ||
+            data.pending == "venue" ||
+            data.pending == "subvenue"
           ) {
-            Alert.alert("Alert", res.message, [
+            Alert.alert("Alert", data.message, [
               {
                 text: "Cancel",
                 style: "cancel",
@@ -65,28 +75,28 @@ const index = () => {
                 text: "Confirm",
                 style: "default",
                 onPress: () => {
-                  if (res.pending == "otp")
+                  if (data.pending == "otp")
                     router.replace({
                       pathname: "/otp",
                       params: {
-                        userId: res.pendingdata.user_id,
+                        userId,
                         email: formData.email,
                         source: "register",
                       },
                     });
-                  if (res.pending == "venue")
+                  if (data.pending == "venue")
                     router.replace({
                       pathname: "/register/step2",
                       params: {
-                        userId: res.pendingdata.user_id,
+                        userId,
                       },
                     });
-                  if (res.pending == "subvenue")
+                  if (data.pending == "subvenue")
                     router.replace({
                       pathname: "/register/step3",
                       params: {
-                        userId: res.pendingdata.user_id,
-                        venueId: res.pendingdata.venue_id,
+                        userId,
+                        venueId: data.pendingdata.venue_id,
                       },
                     });
                 },
@@ -94,9 +104,11 @@ const index = () => {
             ]);
           }
         }
-      }
-      if (loginUser.rejected.match(result)) {
-        Toast.error(result.payload);
+      } catch (error) {
+        console.log(error);
+        Toast.error("Internal Error");
+      } finally {
+        setLoading(false);
         setFormData({
           email: "",
           password: "",
@@ -104,6 +116,12 @@ const index = () => {
       }
     }
   };
+  const setUser = async (user) => {
+    await AsyncStorage.setItem("user", JSON.stringify(user));
+  };
+  useEffect(() => {
+    if (userState.user) setUser(userState.user);
+  }, [userState]);
   return (
     <View style={{ flex: 1 }}>
       <Header showBackBtn />
@@ -148,7 +166,7 @@ const index = () => {
         <CustomButton
           text={"Login"}
           onPress={handleSubmit}
-          loading={authState.loading}
+          loading={loading || userState.loading}
         />
       </ScreenWrapper>
     </View>

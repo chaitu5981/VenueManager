@@ -8,10 +8,7 @@ import { fetchCountries } from "../store/locationSlice";
 import { useEffect } from "react";
 export default function Index1() {
   const router = useRouter();
-  const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(fetchCountries());
-  }, []);
+
   return (
     <>
       <ScreenWrapper>

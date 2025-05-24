@@ -1,16 +1,14 @@
 import {
+  ActivityIndicator,
   Alert,
-  ScrollView,
+  Keyboard,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import Typo from "../../components/Typo";
-import { Button, HelperText, TextInput } from "react-native-paper";
-import { useEffect, useState } from "react";
-import { useRegisterContext } from "./_layout";
-import { useRouter } from "expo-router";
+import { TextInput } from "react-native-paper";
+import { useEffect, useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import CustomButton from "../../components/CustomButton";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import CustomTextInput from "../../components/CustomTextInput";
@@ -19,8 +17,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "../../components/Header";
 import { useDispatch, useSelector } from "react-redux";
 import CustomSelect from "../../components/CustomSelect";
-import { registerUser } from "../../store/authSlice";
 import { Toast } from "toastify-react-native";
+import axios from "axios";
+import { getUserInfo } from "../../store/userSlice";
 const initialFormData = {
   name: "",
   phone: "",
@@ -30,9 +29,12 @@ const initialFormData = {
   confirmPwd: "",
 };
 const Step1 = () => {
+  const { editing = false } = useLocalSearchParams();
+  const { user, loading: userLoading } = useSelector((state) => state.user);
   const [formData, setFormData] = useState(initialFormData);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     name: "",
     phone: "",
@@ -42,10 +44,23 @@ const Step1 = () => {
     confirmPwd: "",
   });
   const locationState = useSelector((state) => state.location);
-  const authState = useSelector((state) => state.auth);
   const router = useRouter();
   const dispatch = useDispatch();
-
+  const countryOptions = useMemo(() => {
+    return locationState.countries.map((c) => ({
+      label: "+" + c.country_code,
+      value: c.country_code,
+    }));
+  }, [locationState.countries]);
+  useEffect(() => {
+    if (editing)
+      setFormData({
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: user?.mobile_no || "",
+        code: user?.country_code || "91",
+      });
+  }, [editing, user]);
   const validateName = (v) => {
     if (v.trim().length == 0) return "Enter Valid Name";
     else return "";
@@ -73,9 +88,8 @@ const Step1 = () => {
       return "Password and Confirm Password Should Match";
     else return "";
   };
-
   const handleSubmit = async () => {
-    const nameErr = validateName(formData.name);
+    const nameErr = validateName(formData?.name);
     const phoneErr = validatePhone(formData.phone);
     const emailErr = validateEmail(formData.email);
     const pwdErr = validatePassword(formData.password);
@@ -88,34 +102,35 @@ const Step1 = () => {
       confirmPwd: confirmPwdErr,
     });
     if (!nameErr && !phoneErr && !emailErr && !pwdErr && !confirmPwdErr) {
-      const result = await dispatch(
-        registerUser({
-          name: formData.name,
-          country_code: formData.code,
-          mobile_no: formData.phone,
-          email: formData.email,
-          is_otp_verified: false,
-          firebase_token: "web",
-          user_type_id: "001",
-          password: formData.password,
-        })
-      );
-      if (registerUser.fulfilled.match(result)) {
-        const res = result.payload;
-        if (!res.isEmailAlreadyExist && res.status_code == 200) {
+      try {
+        setLoading(true);
+        const { data } = await axios.post(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/registration`,
+          {
+            name: formData?.name,
+            country_code: formData.code,
+            mobile_no: formData.phone,
+            email: formData.email,
+            is_otp_verified: false,
+            firebase_token: "web",
+            user_type_id: "001",
+            password: formData.password,
+          }
+        );
+        if (!data.isEmailAlreadyExist && data.status_code == 200) {
           Toast.success(
             "OTP sent successfully on your registered email / mobile no"
           );
           router.replace({
             pathname: "/otp",
             params: {
-              userId: res.user_id,
+              userId: data.user_id,
               email: formData.email,
               source: "register",
             },
           });
         }
-        if (res.isEmailAlreadyExist) {
+        if (data.isEmailAlreadyExist) {
           Alert.alert("Alert", "User already registered.Do you want to Login", [
             {
               text: "Cancel",
@@ -128,31 +143,69 @@ const Step1 = () => {
             },
           ]);
         }
-        setFormData(initialFormData);
-      }
-      if (registerUser.rejected.match(result)) {
+      } catch (error) {
         Toast.error("Internal Error");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  const handleUpdate = async () => {
+    const nameErr = validateName(formData.name);
+    const phoneErr = validatePhone(formData.phone);
+    setErrors({
+      name: nameErr,
+      phone: phoneErr,
+    });
+    if (!nameErr && !phoneErr) {
+      try {
+        setLoading(true);
+        const { data } = await axios.post(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/updateUserRegistration`,
+          {
+            user_id: user.user_id,
+            name: formData?.name,
+            country_code: formData.code,
+            mobile_no: formData.phone,
+          }
+        );
+        if (data.status_code == 200) {
+          Keyboard.dismiss();
+          await dispatch(getUserInfo(user.user_id));
+          Toast.success(data.message);
+          router.back();
+        }
+      } catch (error) {
+        Toast.error("Internal Error");
+        setFormData({
+          name: user.name,
+          email: user.email,
+          phone: user.mobile_no,
+          code: user.country_code,
+        });
+      } finally {
+        setLoading(false);
       }
     }
   };
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Header showBackBtn />
-      <Stepper step={1} />
+      <Header label={editing && "Update Profile"} showBackBtn />
+      {editing ? <></> : <Stepper step={1} />}
       <ScreenWrapper>
         <View>
-          <Typo size={20} weight={700}>
+          <Typo size={20} weight={700} position={"center"}>
             Personal Information
           </Typo>
-          <Typo size={15} weight={500}>
-            Add Below Details
+          <Typo size={15} weight={500} position={"center"}>
+            {editing ? "Update" : "Add"} Below Details
           </Typo>
         </View>
         <View style={{ flexGrow: 1, gap: 15 }}>
           <CustomTextInput
             label={"Your Name"}
-            error={errors.name}
-            value={formData.name}
+            error={errors?.name}
+            value={formData?.name}
             onChange={(v) => {
               setFormData({ ...formData, name: v });
               setErrors({ ...errors, name: validateName(v) });
@@ -164,16 +217,9 @@ const Step1 = () => {
               loading={locationState.loading}
               value={"+" + formData.code}
               searchable
-              options={
-                locationState.countries.length > 0
-                  ? locationState.countries.map((c) => ({
-                      label: "+" + c.country_code,
-                      value: c.country_code,
-                    }))
-                  : []
-              }
+              options={locationState.countries.length > 0 ? countryOptions : []}
               onSelect={(v) => setFormData({ ...formData, code: v })}
-              customStyle={{ width: 90 }}
+              customStyle={{ width: 100 }}
             />
             <CustomTextInput
               customStyle={{ flex: 1 }}
@@ -191,50 +237,63 @@ const Step1 = () => {
           <CustomTextInput
             label={"Email Id"}
             value={formData.email}
+            editable={!editing}
             error={errors.email}
             onChange={(v) => {
               setFormData({ ...formData, email: v });
               setErrors({ ...errors, email: validateEmail(v) });
             }}
           />
-          <CustomTextInput
-            label={"Password"}
-            value={formData.password}
-            error={errors.password}
-            secureTextEntry={!showPwd}
-            onChange={(v) => {
-              setFormData({ ...formData, password: v });
-              setErrors({ ...errors, password: validatePassword(v) });
-            }}
-            right={
-              <TextInput.Icon
-                icon={showPwd ? "eye-off" : "eye"}
-                onPress={() => setShowPwd(!showPwd)}
-              />
-            }
-          />
+          {editing ? (
+            <></>
+          ) : (
+            <CustomTextInput
+              label={"Password"}
+              value={formData.password}
+              error={errors.password}
+              secureTextEntry={!showPwd}
+              onChange={(v) => {
+                setFormData({ ...formData, password: v });
+                setErrors({ ...errors, password: validatePassword(v) });
+              }}
+              right={
+                editing ? undefined : (
+                  <TextInput.Icon
+                    icon={showPwd ? "eye-off" : "eye"}
+                    onPress={() => setShowPwd(!showPwd)}
+                  />
+                )
+              }
+            />
+          )}
 
-          <CustomTextInput
-            label={"Confirm Password"}
-            secureTextEntry={!showConfirmPwd}
-            right={
-              <TextInput.Icon
-                icon={showConfirmPwd ? "eye-off" : "eye"}
-                onPress={() => setShowConfirmPwd(!showConfirmPwd)}
-              />
-            }
-            value={formData.confirmPwd}
-            error={errors.confirmPwd}
-            onChange={(v) => {
-              setFormData({ ...formData, confirmPwd: v });
-              setErrors({ ...errors, confirmPwd: validateConfirmPwd(v) });
-            }}
-          />
+          {editing ? (
+            <></>
+          ) : (
+            <CustomTextInput
+              label={"Confirm Password"}
+              secureTextEntry={!showConfirmPwd}
+              right={
+                editing || (
+                  <TextInput.Icon
+                    icon={showConfirmPwd ? "eye-off" : "eye"}
+                    onPress={() => setShowConfirmPwd(!showConfirmPwd)}
+                  />
+                )
+              }
+              value={formData.confirmPwd}
+              error={errors.confirmPwd}
+              onChange={(v) => {
+                setFormData({ ...formData, confirmPwd: v });
+                setErrors({ ...errors, confirmPwd: validateConfirmPwd(v) });
+              }}
+            />
+          )}
         </View>
         <CustomButton
-          text={"Next"}
-          onPress={handleSubmit}
-          loading={authState.loading}
+          text={editing ? "Update" : "Next"}
+          onPress={editing ? handleUpdate : handleSubmit}
+          loading={loading || userLoading}
         />
       </ScreenWrapper>
     </SafeAreaView>
