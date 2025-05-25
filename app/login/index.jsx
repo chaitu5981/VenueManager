@@ -58,51 +58,53 @@ const index = () => {
             Toast.success("User logged in Successfully");
           }
         } else {
-          Toast.warn(data.message);
-          const userId = data.pending.user_id;
-          if (
-            data.pending == "otp" ||
-            data.pending == "venue" ||
-            data.pending == "subvenue"
-          ) {
-            Alert.alert("Alert", data.message, [
-              {
-                text: "Cancel",
-                style: "cancel",
-                onPress: () => console.log("Cancel"),
-              },
-              {
-                text: "Confirm",
-                style: "default",
-                onPress: () => {
-                  if (data.pending == "otp")
-                    router.replace({
-                      pathname: "/otp",
-                      params: {
-                        userId,
-                        email: formData.email,
-                        source: "register",
-                      },
-                    });
-                  if (data.pending == "venue")
-                    router.replace({
-                      pathname: "/register/step2",
-                      params: {
-                        userId,
-                      },
-                    });
-                  if (data.pending == "subvenue")
-                    router.replace({
-                      pathname: "/register/step3",
-                      params: {
-                        userId,
-                        venueId: data.pendingdata.venue_id,
-                      },
-                    });
+          if (data.pending) {
+            Toast.warn(data.message);
+            const userId = data.pendingdata.user_id;
+            if (
+              data.pending == "otp" ||
+              data.pending == "venue" ||
+              data.pending == "subvenue"
+            ) {
+              Alert.alert("Alert", data.message, [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                  onPress: () => console.log("Cancel"),
                 },
-              },
-            ]);
-          }
+                {
+                  text: "Confirm",
+                  style: "default",
+                  onPress: () => {
+                    if (data.pending == "otp")
+                      router.replace({
+                        pathname: "/otp",
+                        params: {
+                          userId,
+                          email: formData.email,
+                          source: "register",
+                        },
+                      });
+                    if (data.pending == "venue")
+                      router.replace({
+                        pathname: "/register/step2",
+                        params: {
+                          userId,
+                        },
+                      });
+                    if (data.pending == "subvenue")
+                      router.replace({
+                        pathname: "/register/step3",
+                        params: {
+                          userId,
+                          venueId: data.pendingdata.venue_id,
+                        },
+                      });
+                  },
+                },
+              ]);
+            }
+          } else Toast.error(data.message);
         }
       } catch (error) {
         console.log(error);

@@ -6,7 +6,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconButton, RadioButton } from "react-native-paper";
 import Typo from "./Typo";
 import CustomTextInput from "./CustomTextInput";
@@ -17,20 +17,31 @@ import { subVenueStatus } from "../data/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { Toast } from "toastify-react-native";
 import { getUserInfo } from "../store/userSlice";
-
-const AddOrEditSubVenue = ({ visible, setVisible }) => {
-  const [subVenue, setSubVenue] = useState({
-    type: "Hall",
-    name: "",
-    capacity: "",
-    status: "Active",
-  });
-  const [errors, setErrors] = useState({ name: "", capacity: "" });
+import { router } from "expo-router";
+const emptyData = {
+  type: "Hall",
+  name: "",
+  capacity: "",
+  status: "Active",
+};
+const emptyErrors = {
+  name: "",
+  capacity: "",
+};
+const AddOrEditSubVenue = ({
+  visible,
+  setVisible,
+  editing = false,
+  initialData,
+}) => {
+  const [subVenue, setSubVenue] = useState(emptyData);
+  const [errors, setErrors] = useState(emptyErrors);
   const [loading, setLoading] = useState(false);
   const {
     user: { user_id },
     venue: { venue_id },
     loading: userLoading,
+    error,
   } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const validateName = (v) => {
@@ -49,44 +60,79 @@ const AddOrEditSubVenue = ({ visible, setVisible }) => {
     if (!nameErr && !capacityErr) {
       try {
         setLoading(true);
-
-        const { data } = await axios.post(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/subVenueRegistration`,
-          {
-            user_id,
-            venue_id,
-            sub_venues: [
-              {
-                sub_venue_name: subVenue.name,
-                sub_venue_type: subVenue.type,
-                sub_venue_capacity: subVenue.capacity,
-                sub_venue_status: subVenue.status,
-              },
-            ],
-          }
-        );
-        if (data.status_code == 200) {
-          Keyboard.dismiss();
-          await dispatch(getUserInfo(user_id));
-          Toast.success(data.data.message);
-          setVisible(false);
+        if (!editing) {
+          const { data } = await axios.post(
+            `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/subVenueRegistration`,
+            {
+              user_id,
+              venue_id,
+              sub_venues: [
+                {
+                  sub_venue_name: subVenue.name,
+                  sub_venue_type: subVenue.type,
+                  sub_venue_capacity: subVenue.capacity,
+                  sub_venue_status: subVenue.status,
+                },
+              ],
+            }
+          );
+          if (data.status_code == 200) {
+            Toast.success(data.data.message);
+            await dispatch(getUserInfo(user_id));
+            if (error) Toast.error(error);
+            setVisible(false);
+            Keyboard.dismiss();
+            router.back();
+          } else Toast.error(data.message);
+        } else {
+          const { data } = await axios.post(
+            `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/updateSubVenueRegistration`,
+            {
+              sub_venue_id: initialData.subVenueId,
+              sub_venue_name: subVenue.name,
+              sub_venue_type: subVenue.type,
+              sub_venue_capacity: subVenue.capacity,
+              sub_venue_status: subVenue.status,
+            }
+          );
+          if (data.status_code == 200) {
+            Toast.success(data.message);
+            await dispatch(getUserInfo(user_id));
+            if (error) Toast.error(error);
+            setVisible(false);
+            Keyboard.dismiss();
+            router.back();
+          } else Toast.error(data.message);
         }
       } catch (error) {
-        console.log(error);
         Toast.error("Internal Error");
       } finally {
         setLoading(false);
       }
     }
   };
+  const handleClose = () => {
+    setVisible(false);
+    setSubVenue(emptyData);
+    setErrors(emptyErrors);
+  };
+  useEffect(() => {
+    if (editing)
+      setSubVenue({
+        type: initialData?.type || "Hall",
+        name: initialData?.name || "",
+        capacity: initialData?.capacity || "",
+        status: initialData?.status || "Active",
+      });
+  }, [initialData, editing]);
   return (
     <Modal
       visible={visible}
       transparent
-      onRequestClose={() => setVisible(false)}
+      onRequestClose={handleClose}
       animationType="slide"
     >
-      <TouchableWithoutFeedback onPress={() => setVisible(false)}>
+      <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.modalBox}>
@@ -100,7 +146,7 @@ const AddOrEditSubVenue = ({ visible, setVisible }) => {
                   icon="close"
                   size={30}
                   iconColor="#59B0C1"
-                  onPress={() => setVisible(false)}
+                  onPress={handleClose}
                 />
                 <View style={{ gap: 8 }}>
                   <Typo size={16}>Sub Venue Type :</Typo>

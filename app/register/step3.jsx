@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Header from "../../components/Header";
 import { Toast } from "toastify-react-native";
 import axios from "axios";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Step3 = () => {
   const [subVenues, setSubVenues] = useState([
@@ -99,7 +100,7 @@ const Step3 = () => {
       );
   };
   return (
-    <View style={{ flexGrow: 1 }}>
+    <SafeAreaView style={{ flexGrow: 1 }}>
       <Header showBackBtn />
       <Stepper step={3} />
       <ScreenWrapper>
@@ -143,7 +144,7 @@ const Step3 = () => {
           loading={loading}
         />
       </ScreenWrapper>
-    </View>
+    </SafeAreaView>
   );
 };
 export default Step3;

@@ -14,8 +14,8 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import Typo from "../components/Typo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useDispatch } from "react-redux";
-import { getUserInfo, setUser } from "../store/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { getRoomsInfo, getUserInfo, setUser } from "../store/userSlice";
 import { fetchCountries } from "../store/locationSlice";
 const carouselItems = [
   require("../assets/Intro1.png"),
@@ -41,6 +41,7 @@ const Index = () => {
   const router = useRouter();
   const ref = useRef(null);
   const dispatch = useDispatch();
+  const { error } = useSelector((state) => state.user);
 
   const handleNext = () => {
     const currentIndex = Math.round(progress.value);
@@ -55,11 +56,12 @@ const Index = () => {
     return userId;
   };
   const fetchUserInfo = async (userId) => {
-    const res = await dispatch(getUserInfo(userId));
-    if (res.payload.status_code == 200) {
+    await dispatch(getUserInfo(userId));
+    await dispatch(getRoomsInfo(userId));
+    if (!error) {
       router.dismissAll();
       router.replace("/tabs");
-    }
+    } else Toast.error(error);
   };
   useEffect(() => {
     const checkUser = async () => {

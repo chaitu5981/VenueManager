@@ -1,17 +1,20 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 import { colors } from "../data/theme";
-const CustomButton = ({ text, onPress, mode, loading }) => {
+const CustomButton = ({ text, onPress, mode, loading, customStyle }) => {
   return (
     <Button
       loading={loading}
       mode={mode || "contained"}
-      style={{
-        backgroundColor: colors.primary,
-        borderRadius: 15,
-        height: 60,
-        justifyContent: "center",
-      }}
+      style={[
+        {
+          backgroundColor: colors.primary,
+          borderRadius: 15,
+          height: 60,
+          justifyContent: "center",
+        },
+        customStyle,
+      ]}
       labelStyle={{ fontSize: 20 }}
       onPress={onPress}
     >

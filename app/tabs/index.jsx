@@ -80,7 +80,7 @@ const Home = () => {
       >
         <View style={{ flexDirection: "row", gap: 30, padding: 20 }}>
           <TouchableOpacity onPress={() => setOpenSidebar(true)}>
-            <Ionicons name="menu" size={24} color="black" />
+            <Ionicons name="menu" size={35} color="black" />
           </TouchableOpacity>
           {/* <Header /> */}
         </View>

@@ -30,7 +30,11 @@ const initialFormData = {
 };
 const Step1 = () => {
   const { editing = false } = useLocalSearchParams();
-  const { user, loading: userLoading } = useSelector((state) => state.user);
+  const {
+    user,
+    error,
+    loading: userLoading,
+  } = useSelector((state) => state.user);
   const [formData, setFormData] = useState(initialFormData);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
@@ -171,9 +175,12 @@ const Step1 = () => {
         );
         if (data.status_code == 200) {
           Keyboard.dismiss();
-          await dispatch(getUserInfo(user.user_id));
           Toast.success(data.message);
+          await dispatch(getUserInfo(user.user_id));
+          if (error) Toast.error(error);
           router.back();
+        } else {
+          Toast.error(data.message);
         }
       } catch (error) {
         Toast.error("Internal Error");

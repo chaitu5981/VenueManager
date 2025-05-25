@@ -10,7 +10,7 @@ import {
 import { View, Text } from "react-native";
 const ScreenWrapper = ({ children, customStyle }) => {
   return (
-    <View style={[{ flex: 1 }]}>
+    <KeyboardAvoidingView style={[{ flex: 1 }]}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -20,7 +20,7 @@ const ScreenWrapper = ({ children, customStyle }) => {
           {children}
         </ScrollView>
       </TouchableWithoutFeedback>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 export default ScreenWrapper;

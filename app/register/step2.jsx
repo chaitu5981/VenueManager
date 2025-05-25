@@ -13,6 +13,8 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Toast } from "toastify-react-native";
 import { fetchCities, fetchStates } from "../../store/locationSlice";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { getUserInfo } from "../../store/userSlice";
 const emptyErrors = {
   name: "",
   type: "",
@@ -31,6 +33,7 @@ const step2 = () => {
   const {
     user,
     venue,
+    error,
     loading: userLoading,
   } = useSelector((state) => state.user);
   const [venueInfo, setVenueInfo] = useState({
@@ -60,7 +63,6 @@ const step2 = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (venueInfo.country?.id) {
-      console.log("Hi");
       dispatch(fetchStates(venueInfo.country.id));
     }
   }, [venueInfo.country]);
@@ -71,15 +73,13 @@ const step2 = () => {
     }
   }, [venueInfo.state]);
   useEffect(() => {
-    const getInitialVenue = async () => {
+    const getInitialVenue = () => {
       if (editing) {
         if (ref1.current == 0) {
           ref1.current = 1;
           const country = locationState.countries.find(
             (c) => c.cid == venue.country
           );
-          console.log(venue, "before initial setVenue");
-          console.log(country, "initial country");
           setVenueInfo({
             name: venue.venue_name,
             phone: venue.venue_mobile_no,
@@ -100,21 +100,21 @@ const step2 = () => {
           const state = locationState.states.find((s) => s.id == venue.state);
           if (state) {
             ref2.current = 1;
-            setVenueInfo({
-              ...venueInfo,
+            setVenueInfo((prev) => ({
+              ...prev,
               state: { id: state.id, name: state.state },
               city: {},
-            });
+            }));
           }
         }
-        if (ref3.current == 0) {
+        if (ref3.current == 0 && ref2.current == 1) {
           const city = locationState.cities.find((c) => c.id == venue.city);
           if (city) {
             ref3.current = 1;
-            setVenueInfo({
-              ...venueInfo,
+            setVenueInfo((prev) => ({
+              ...prev,
               city: { id: city.id, name: city.city },
-            });
+            }));
           }
         }
       }
@@ -187,10 +187,12 @@ const step2 = () => {
         if (data.status_code == 200) {
           Toast.success(data.message);
           await dispatch(getUserInfo(user.user_id));
+          if (error) Toast.error(error);
           router.back();
-        }
+        } else Toast.error(data.message);
       }
     } catch (error) {
+      console.log(error);
       Toast.error("Internal Error");
     } finally {
       setLoading(false);
@@ -300,16 +302,16 @@ const step2 = () => {
       registerVenue();
   };
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-      <Header showBackBtn />
-      <Stepper step={2} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+      <Header showBackBtn label={editing && "Update Venue Details"} />
+      {editing ? <></> : <Stepper step={2} />}
       <ScreenWrapper>
         <View>
-          <Typo size={20} weight={700}>
-            Venue Registrations
+          <Typo size={20} weight={700} position={"center"}>
+            Venue Registration
           </Typo>
-          <Typo size={15} weight={500}>
-            Add Below Details
+          <Typo size={15} weight={500} position={"center"}>
+            {editing ? "Update" : "Add"} Below Details
           </Typo>
         </View>
         <View style={{ flexGrow: 1, gap: 15 }}>
@@ -477,9 +479,13 @@ const step2 = () => {
             }}
           />
         </View>
-        <CustomButton onPress={handleSubmit} text={"Next"} loading={loading} />
+        <CustomButton
+          onPress={handleSubmit}
+          text={editing ? "Update" : "Next"}
+          loading={loading}
+        />
       </ScreenWrapper>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 export default step2;

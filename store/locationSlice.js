@@ -37,7 +37,6 @@ export const fetchStates = createAsyncThunk(
 export const fetchCities = createAsyncThunk(
   "location/getCities",
   async (stateId, thunkApi) => {
-    console.log(stateId);
     try {
       const { data } = await axios(
         `https://vm-backend-6fd25b5f6201.herokuapp.com/v1/users/cityList?state_id=${stateId}`

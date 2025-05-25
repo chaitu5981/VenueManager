@@ -1,10 +1,10 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { IconButton, RadioButton } from "react-native-paper";
 import CustomTextInput from "./CustomTextInput";
 import Typo from "./Typo";
-import { useState } from "react";
 import CustomSelect from "./CustomSelect";
 import { subVenueStatus } from "../data/constants";
+import { SafeAreaView } from "react-native-safe-area-context";
 const SubVenueForm = ({
   onDelete,
   index,

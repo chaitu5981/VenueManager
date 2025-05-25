@@ -5,6 +5,7 @@ const ModalLayout = () => {
     <Stack
       screenOptions={{
         headerShown: false,
+        presentation: "modal",
       }}
     />
   );
