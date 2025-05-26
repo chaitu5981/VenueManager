@@ -72,9 +72,7 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
             Toast.success("Room added successfully");
             await dispatch(getRoomsInfo(user_id));
             if (error) Toast.error(error);
-            setRoom(emptyData);
-            setVisible(false);
-            Keyboard.dismiss();
+            else handleClose();
           } else Toast.error(data.message);
         } else {
           const { data } = await axios.post(
@@ -90,9 +88,7 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
             Toast.success("Room Updated Successfully");
             await dispatch(getRoomsInfo(user_id));
             if (error) Toast.error(error);
-            setRoom(emptyData);
-            setVisible(false);
-            Keyboard.dismiss();
+            else handleClose();
           } else Toast.error(data.message);
         }
       } catch (error) {
@@ -120,7 +116,7 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
       visible={visible}
       transparent
       onRequestClose={handleClose}
-      animationType="slide"
+      animationType="none"
     >
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.modalOverlay}>

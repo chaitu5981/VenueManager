@@ -1,12 +1,15 @@
 import {
+  InteractionManager,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconButton, RadioButton } from "react-native-paper";
 import Typo from "./Typo";
 import CustomTextInput from "./CustomTextInput";
@@ -37,6 +40,7 @@ const AddOrEditSubVenue = ({
   const [subVenue, setSubVenue] = useState(emptyData);
   const [errors, setErrors] = useState(emptyErrors);
   const [loading, setLoading] = useState(false);
+  const closeOnKeypadHideRef = useRef(false);
   const {
     user: { user_id },
     venue: { venue_id },
@@ -77,12 +81,10 @@ const AddOrEditSubVenue = ({
             }
           );
           if (data.status_code == 200) {
-            Toast.success(data.data.message);
             await dispatch(getUserInfo(user_id));
             if (error) Toast.error(error);
-            setVisible(false);
-            Keyboard.dismiss();
-            router.back();
+            else handleClose();
+            Toast.success(data.data.message);
           } else Toast.error(data.message);
         } else {
           const { data } = await axios.post(
@@ -96,12 +98,10 @@ const AddOrEditSubVenue = ({
             }
           );
           if (data.status_code == 200) {
-            Toast.success(data.message);
             await dispatch(getUserInfo(user_id));
             if (error) Toast.error(error);
-            setVisible(false);
-            Keyboard.dismiss();
-            router.back();
+            else handleClose();
+            Toast.success(data.message);
           } else Toast.error(data.message);
         }
       } catch (error) {
@@ -116,6 +116,7 @@ const AddOrEditSubVenue = ({
     setSubVenue(emptyData);
     setErrors(emptyErrors);
   };
+
   useEffect(() => {
     if (editing)
       setSubVenue({
@@ -130,89 +131,86 @@ const AddOrEditSubVenue = ({
       visible={visible}
       transparent
       onRequestClose={handleClose}
-      animationType="slide"
+      animationType="none"
     >
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.modalBox}>
-              <View style={styles.subVenueContainer}>
-                <IconButton
-                  style={{
-                    marginLeft: "auto",
-                    marginVertical: 0,
-                    marginRight: 0,
-                  }}
-                  icon="close"
-                  size={30}
-                  iconColor="#59B0C1"
-                  onPress={handleClose}
-                />
-                <View style={{ gap: 8 }}>
-                  <Typo size={16}>Sub Venue Type :</Typo>
-                  <RadioButton.Group
-                    onValueChange={(value) =>
-                      setSubVenue({ ...subVenue, type: value })
-                    }
-                    value={subVenue.type}
+              <IconButton
+                style={{
+                  marginLeft: "auto",
+                  marginVertical: 0,
+                  marginRight: 0,
+                }}
+                icon="close"
+                size={30}
+                iconColor="#59B0C1"
+                onPress={handleClose}
+              />
+              <View style={{ gap: 8 }}>
+                <Typo size={16}>Sub Venue Type :</Typo>
+                <RadioButton.Group
+                  onValueChange={(value) =>
+                    setSubVenue({ ...subVenue, type: value })
+                  }
+                  value={subVenue.type}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
                   >
                     <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
+                      style={{ flexDirection: "row", alignItems: "center" }}
                     >
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <RadioButton value="Hall" />
-                        <Text>Hall</Text>
-                      </View>
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <RadioButton value="Lawn" />
-                        <Text>Lawn</Text>
-                      </View>
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <RadioButton value="Others" />
-                        <Text>Others</Text>
-                      </View>
+                      <RadioButton value="Hall" />
+                      <Text>Hall</Text>
                     </View>
-                  </RadioButton.Group>
-                  <CustomTextInput
-                    label={`${subVenue.type} Name`}
-                    value={subVenue.name}
-                    error={errors.name}
-                    onChange={(v) => {
-                      setSubVenue({ ...subVenue, name: v });
-                      setErrors({ ...errors, name: validateName(v) });
-                    }}
-                  />
-                  <CustomTextInput
-                    label={"Capacity"}
-                    keyboardType="numeric"
-                    value={subVenue.capacity}
-                    error={errors.capacity}
-                    onChange={(v) => {
-                      setSubVenue({ ...subVenue, capacity: v });
-                      setErrors({ ...errors, capacity: validateCapacity(v) });
-                    }}
-                  />
-                  <CustomSelect
-                    label={"Status"}
-                    value={subVenue.status}
-                    onSelect={(v) => setSubVenue({ ...subVenue, status: v })}
-                    options={subVenueStatus}
-                  />
-                  <CustomButton
-                    text={"Save"}
-                    onPress={handleSubmit}
-                    loading={loading || userLoading}
-                  />
-                </View>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <RadioButton value="Lawn" />
+                      <Text>Lawn</Text>
+                    </View>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <RadioButton value="Others" />
+                      <Text>Others</Text>
+                    </View>
+                  </View>
+                </RadioButton.Group>
+                <CustomTextInput
+                  label={`${subVenue.type} Name`}
+                  value={subVenue.name}
+                  error={errors.name}
+                  onChange={(v) => {
+                    setSubVenue({ ...subVenue, name: v });
+                    setErrors({ ...errors, name: validateName(v) });
+                  }}
+                />
+                <CustomTextInput
+                  label={"Capacity"}
+                  value={subVenue.capacity}
+                  error={errors.capacity}
+                  onChange={(v) => {
+                    setSubVenue({ ...subVenue, capacity: v });
+                    setErrors({ ...errors, capacity: validateCapacity(v) });
+                  }}
+                />
+                <CustomSelect
+                  label={"Status"}
+                  value={subVenue.status}
+                  onSelect={(v) => setSubVenue({ ...subVenue, status: v })}
+                  options={subVenueStatus}
+                />
+                <CustomButton
+                  text={"Save"}
+                  onPress={handleSubmit}
+                  loading={loading || userLoading}
+                />
               </View>
             </View>
           </TouchableWithoutFeedback>

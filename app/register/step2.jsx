@@ -251,7 +251,7 @@ const step2 = () => {
       );
       if (data.status_code == 200) {
         Toast.success(data.data);
-        await fetchCities();
+        await dispatch(fetchCities(venueInfo.state.id));
       } else Toast.error("City could not be added");
     } catch (error) {
       Toast.error("Internal Error");

@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Step3 = () => {
   const [subVenues, setSubVenues] = useState([
-    { type: "hall", name: "", capacity: "", status: "Active" },
+    { type: "Hall", name: "", capacity: "", status: "Active" },
   ]);
   const [errors, setErrors] = useState([{ name: "", capacity: "" }]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ const Step3 = () => {
   const addSubVenue = () => {
     setSubVenues((prev) => [
       ...prev,
-      { type: "hall", name: "", capacity: "", status: "Active" },
+      { type: "Hall", name: "", capacity: "", status: "Active" },
     ]);
     setErrors((prev) => [...prev, { name: "", capacity: "" }]);
   };
