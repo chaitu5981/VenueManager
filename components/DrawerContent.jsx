@@ -69,9 +69,9 @@ const DrawerContent = () => {
       icon: "logout",
       label: "Signout",
       onPress: async () => {
-        router.dismissTo("/");
-        dispatch(logout());
         await AsyncStorage.removeItem("userId");
+        dispatch(logout());
+        router.dismissTo("/");
       },
     },
   ];
