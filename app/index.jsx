@@ -65,7 +65,6 @@ const Index = () => {
   };
   useEffect(() => {
     const checkUser = async () => {
-      await fetchUserId();
       const userId = await fetchUserId();
       if (userId) {
         fetchUserInfo(userId);

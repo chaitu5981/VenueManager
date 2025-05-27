@@ -69,12 +69,14 @@ const DrawerContent = () => {
       icon: "logout",
       label: "Signout",
       onPress: async () => {
-        await AsyncStorage.removeItem("userId");
-        dispatch(logout());
-        router.dismissAll();
-        setTimeout(() => {
+        try {
+          await AsyncStorage.removeItem("userId");
+          dispatch(logout());
+          router.dismissAll();
           router.replace("/");
-        }, 50);
+        } catch (error) {
+          Alert.Alert("error", error);
+        }
       },
     },
   ];

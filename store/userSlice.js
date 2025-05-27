@@ -46,6 +46,7 @@ const authSlice = createSlice({
       state.user = null;
       state.venue = null;
       state.subVenues = [];
+      state.rooms = [];
     },
   },
   extraReducers: (builder) => {
