@@ -72,7 +72,9 @@ const DrawerContent = () => {
         await AsyncStorage.removeItem("userId");
         dispatch(logout());
         router.dismissAll();
-        router.replace("/");
+        setTimeout(() => {
+          router.replace("/");
+        }, 50);
       },
     },
   ];
