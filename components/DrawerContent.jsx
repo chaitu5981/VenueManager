@@ -15,6 +15,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout } from "../store/userSlice";
 const DrawerContent = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const handleSignOut = async () => {
+    console.log("Hello");
+    try {
+      console.log("Hi");
+      await AsyncStorage.removeItem("userId");
+      console.log("User id removed from async storage");
+      dispatch(logout());
+      router.dismissAll();
+      router.replace("/");
+    } catch (error) {
+      Alert.alert("error", error);
+    }
+  };
+  const viewProfile = () => {
+    router.push(`/(modals)/view-profile`);
+  };
   const menuItems = [
     {
       icon: "home-outline",
@@ -23,7 +40,7 @@ const DrawerContent = () => {
     {
       icon: "account-outline",
       label: "Profile",
-      onPress: () => router.push(`/(modals)/view-profile`),
+      onPress: viewProfile,
     },
     {
       icon: "file-document-outline",
@@ -68,22 +85,12 @@ const DrawerContent = () => {
     {
       icon: "logout",
       label: "Signout",
-      onPress: async () => {
-        try {
-          await AsyncStorage.removeItem("userId");
-          dispatch(logout());
-          router.dismissAll();
-          router.replace("/");
-        } catch (error) {
-          Alert.Alert("error", error);
-        }
-      },
+      onPress: handleSignOut,
     },
   ];
   const { user } = useSelector((state) => state.user);
-  const router = useRouter();
   return (
-    <ScrollView contentContainerStyle={{ padding: 10, gap: 20 }}>
+    <View style={{ flex: 1, padding: 10, gap: 20 }}>
       <View style={styles.profileContainer}>
         <Image
           source={require("../assets/profile.jpg")}
@@ -104,7 +111,8 @@ const DrawerContent = () => {
         </View>
       </View>
       <FlatList
-        scrollEnabled={false}
+        style={{ flex: 1 }}
+        scrollEnabled
         data={menuItems}
         keyExtractor={(item) => item.label}
         ItemSeparatorComponent={() => <View style={{ height: 30 }} />}
@@ -118,7 +126,7 @@ const DrawerContent = () => {
           </TouchableOpacity>
         )}
       />
-    </ScrollView>
+    </View>
   );
 };
 export default DrawerContent;

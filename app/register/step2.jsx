@@ -186,9 +186,10 @@ const step2 = () => {
         );
         if (data.status_code == 200) {
           Toast.success(data.message);
-          await dispatch(getUserInfo(user.user_id));
-          if (error) Toast.error(error);
-          router.back();
+          const res = await dispatch(getUserInfo(user.user_id));
+          if (res.meta.requestStatus == "rejected")
+            Toast.error(res.action.payload);
+          else router.back();
         } else Toast.error(data.message);
       }
     } catch (error) {
@@ -251,7 +252,12 @@ const step2 = () => {
       );
       if (data.status_code == 200) {
         Toast.success(data.data);
-        await dispatch(fetchCities(venueInfo.state.id));
+        const { payload } = await dispatch(fetchCities(venueInfo.state.id));
+        const newCity = payload.find((c) => c.city == city);
+        setVenueInfo((prev) => ({
+          ...prev,
+          city: { id: newCity.id, name: newCity.city },
+        }));
       } else Toast.error("City could not be added");
     } catch (error) {
       Toast.error("Internal Error");

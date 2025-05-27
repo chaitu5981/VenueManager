@@ -8,7 +8,7 @@ import { TextInput } from "react-native-paper";
 import CustomButton from "../../components/CustomButton";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserInfo, loginUser } from "../../store/userSlice";
+import { getRoomsInfo, getUserInfo, loginUser } from "../../store/userSlice";
 import { Toast } from "toastify-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -51,11 +51,14 @@ const index = () => {
         );
         if (data.status_code == 200) {
           await AsyncStorage.setItem("userId", data.user_id);
-          const res = await dispatch(getUserInfo(data.user_id));
-          if (res.payload.status_code == 200) {
+          const res1 = await dispatch(getUserInfo(data.user_id));
+          const res2 = await dispatch(getRoomsInfo(data.user_id));
+          if (res1.meta.requestStatus == "fulfilled") {
             router.dismissAll();
             router.replace("/tabs");
             Toast.success("User logged in Successfully");
+          } else {
+            Toast.error(res1.action.payload);
           }
         } else {
           if (data.pending) {

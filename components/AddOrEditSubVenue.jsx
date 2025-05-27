@@ -57,6 +57,11 @@ const AddOrEditSubVenue = ({
       return "Enter Valid Capacity";
     else return "";
   };
+  const loadUserInfo = async () => {
+    const res = await dispatch(getUserInfo(user_id));
+    if (res.meta.requestStatus == "fulfilled") handleClose();
+    else Toast.error(res.action.payload);
+  };
   const handleSubmit = async () => {
     const nameErr = validateName(subVenue.name);
     const capacityErr = validateCapacity(subVenue.capacity);
@@ -81,10 +86,8 @@ const AddOrEditSubVenue = ({
             }
           );
           if (data.status_code == 200) {
-            await dispatch(getUserInfo(user_id));
-            if (error) Toast.error(error);
-            else handleClose();
             Toast.success(data.data.message);
+            loadUserInfo();
           } else Toast.error(data.message);
         } else {
           const { data } = await axios.post(
@@ -98,10 +101,8 @@ const AddOrEditSubVenue = ({
             }
           );
           if (data.status_code == 200) {
-            await dispatch(getUserInfo(user_id));
-            if (error) Toast.error(error);
-            else handleClose();
             Toast.success(data.message);
+            loadUserInfo();
           } else Toast.error(data.message);
         }
       } catch (error) {

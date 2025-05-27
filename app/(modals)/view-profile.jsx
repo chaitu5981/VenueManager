@@ -51,8 +51,9 @@ const ViewProfile = () => {
       if (data.status_code == 200) {
         Toast.success(data.message);
         setDeletingRoomId(null);
-        await dispatch(getRoomsInfo(user.user_id));
-        if (error) Toast.message(error);
+        const res = await dispatch(getRoomsInfo(user.user_id));
+        if (res.meta.requestStatus == "rejected")
+          Toast.error(res.action.payload);
       } else Toast.error(data.message);
     } catch (error) {
       Toast.error("Internal Error");

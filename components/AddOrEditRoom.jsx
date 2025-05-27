@@ -50,6 +50,11 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
       return "Enter Valid Cost";
     else return "";
   };
+  const loadRoomsInfo = async () => {
+    const res = await dispatch(getRoomsInfo(user_id));
+    if (res.meta.requestStatus == "fulfilled") handleClose();
+    else Toast.error(res.action.payload);
+  };
   const handleSubmit = async () => {
     const numberErr = validateNumber(room.number);
     const typeErr = validateType(room.type);
@@ -70,9 +75,7 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
           );
           if (data.status_code == 200) {
             Toast.success("Room added successfully");
-            await dispatch(getRoomsInfo(user_id));
-            if (error) Toast.error(error);
-            else handleClose();
+            loadRoomsInfo();
           } else Toast.error(data.message);
         } else {
           const { data } = await axios.post(
@@ -86,9 +89,7 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
           );
           if (data.status_code == 200) {
             Toast.success("Room Updated Successfully");
-            await dispatch(getRoomsInfo(user_id));
-            if (error) Toast.error(error);
-            else handleClose();
+            loadRoomsInfo();
           } else Toast.error(data.message);
         }
       } catch (error) {

@@ -56,12 +56,12 @@ const Index = () => {
     return userId;
   };
   const fetchUserInfo = async (userId) => {
-    await dispatch(getUserInfo(userId));
-    await dispatch(getRoomsInfo(userId));
-    if (!error) {
+    const res1 = await dispatch(getUserInfo(userId));
+    const res2 = await dispatch(getRoomsInfo(userId));
+    if (res1.meta.requestStatus == "fulfilled") {
       router.dismissAll();
       router.replace("/tabs");
-    } else Toast.error(error);
+    } else setShowSplash(false);
   };
   useEffect(() => {
     const checkUser = async () => {
