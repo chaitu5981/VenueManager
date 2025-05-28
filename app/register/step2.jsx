@@ -170,9 +170,9 @@ const step2 = () => {
         if (data.status_code == 200) {
           const venueId = data.data.data;
           Toast.success(data.data.message);
-          router.dismissTo("/");
-          router.push({
-            pathname: "register/step3",
+          // router.dismiss();
+          router.replace({
+            pathname: "/register/step3",
             params: { userId, venueId },
           });
         } else Toast.error(data.message);
@@ -227,7 +227,8 @@ const step2 = () => {
   const validateState = (v) =>
     Object.keys(v).length == 0 ? "Please select State" : "";
 
-  const validatePincode = (v) => (!v.trim() ? "Please enter pincode" : "");
+  const validatePincode = (v) =>
+    v.trim().length != 6 ? "Please enter valid pincode" : "";
 
   const validateCity = (v) =>
     Object.keys(v).length == 0 ? "Please select City" : "";
