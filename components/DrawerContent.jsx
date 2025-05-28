@@ -17,14 +17,11 @@ const DrawerContent = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const handleSignOut = async () => {
-    console.log("Hello");
     try {
-      console.log("Hi");
       await AsyncStorage.removeItem("userId");
-      console.log("User id removed from async storage");
-      dispatch(logout());
       router.dismissAll();
       router.replace("/");
+      setTimeout(() => dispatch(logout()), 50);
     } catch (error) {
       Alert.alert("error", error);
     }
