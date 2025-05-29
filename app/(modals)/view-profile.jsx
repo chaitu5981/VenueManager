@@ -66,7 +66,9 @@ const ViewProfile = () => {
       <Header label="Profile" showBackBtn />
       <ScreenWrapper>
         <View style={styles.subHeading}>
-          <Typo size={20}>Personal Details</Typo>
+          <Typo size={20} weight={600}>
+            Personal Details
+          </Typo>
           <TouchableOpacity
             onPress={() =>
               router.push({
@@ -80,20 +82,26 @@ const ViewProfile = () => {
             <Feather name="edit" size={28} color="black" />
           </TouchableOpacity>
         </View>
-        <View style={[styles.card, { marginTop: 50 }]}>
+        <View style={[styles.card, { marginTop: 60 }]}>
           <View style={[styles.section, styles.rowSection]}>
             <View>
               <Typo size={13}>Name</Typo>
-              <Typo size={17}>{user.name}</Typo>
+              <Typo size={17} weight={600}>
+                {user.name}
+              </Typo>
             </View>
             <View>
               <Typo size={13}>Mobile</Typo>
-              <Typo size={17}>{user.mobile_no}</Typo>
+              <Typo size={17} weight={600}>
+                {user.mobile_no}
+              </Typo>
             </View>
           </View>
           <View style={{ padding: 20 }}>
             <Typo size={13}>Email Id</Typo>
-            <Typo size={17}>{user.email}</Typo>
+            <Typo size={17} weight={600}>
+              {user.email}
+            </Typo>
           </View>
           <Image
             source={require("../../assets/user.png")}
@@ -101,7 +109,9 @@ const ViewProfile = () => {
           />
         </View>
         <View style={styles.subHeading}>
-          <Typo size={20}>Venue Details</Typo>
+          <Typo size={20} weight={600}>
+            Venue Details
+          </Typo>
           <TouchableOpacity
             onPress={() =>
               router.push({
@@ -118,29 +128,41 @@ const ViewProfile = () => {
         <View style={styles.card}>
           <View style={styles.section}>
             <Typo size={13}>Venue Name</Typo>
-            <Typo size={17}>{venue.venue_name}</Typo>
+            <Typo size={17} weight={600}>
+              {venue.venue_name}
+            </Typo>
           </View>
           <View style={[styles.section, styles.rowSection]}>
             <View>
               <Typo size={13}>Venue Type</Typo>
-              <Typo size={17}>{venue.venue_type}</Typo>
+              <Typo size={17} weight={600}>
+                {venue.venue_type}
+              </Typo>
             </View>
             <View>
               <Typo size={13}>City</Typo>
-              <Typo size={17}>{venue.city}</Typo>
+              <Typo size={17} weight={600}>
+                {venue.city}
+              </Typo>
             </View>
           </View>
           <View style={styles.section}>
             <Typo size={13}>Address</Typo>
-            <Typo size={17}>{venue.address}</Typo>
+            <Typo size={17} weight={600}>
+              {venue.address}
+            </Typo>
           </View>
           <View style={{ padding: 20 }}>
             <Typo size={13}>Pin Code</Typo>
-            <Typo size={17}>{venue.pincode}</Typo>
+            <Typo size={17} weight={600}>
+              {venue.pincode}
+            </Typo>
           </View>
         </View>
         <View style={styles.subHeading}>
-          <Typo size={20}>Sub Venue Details</Typo>
+          <Typo size={20} weight={600}>
+            Sub Venue Details
+          </Typo>
           <TouchableOpacity
             onPress={() => {
               setShowSubVenueModal(true);
@@ -158,7 +180,9 @@ const ViewProfile = () => {
           renderItem={({ item }) => (
             <View style={[styles.card, styles.item]}>
               <View>
-                <Typo size={17}>{item.sub_venue_name}</Typo>
+                <Typo size={17} weight={600}>
+                  {item.sub_venue_name}
+                </Typo>
                 <Typo size={12}>
                   Status :
                   <Typo
@@ -190,7 +214,9 @@ const ViewProfile = () => {
           )}
         />
         <View style={styles.subHeading}>
-          <Typo size={20}>Rooms Details</Typo>
+          <Typo size={20} weight={600}>
+            Rooms Details
+          </Typo>
           <TouchableOpacity
             onPress={() => {
               setShowRoomModal(true);
@@ -209,7 +235,9 @@ const ViewProfile = () => {
           renderItem={({ item }) => (
             <View style={[styles.card, styles.item]}>
               <View>
-                <Typo size={17}>{item.room_name}</Typo>
+                <Typo size={17} weight={600}>
+                  {item.room_name}
+                </Typo>
                 <Typo size={12}>
                   Type :<Typo size={12}>{item.room_type}</Typo>
                 </Typo>
@@ -274,7 +302,7 @@ const styles = StyleSheet.create({
   userImg: {
     position: "absolute",
     left: "50%",
-    top: -50,
+    top: -70,
     width: 100,
     height: 100,
     borderRadius: 100,

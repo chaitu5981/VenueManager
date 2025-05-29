@@ -5,7 +5,7 @@ const Typo = ({ size, weight, color, position, children, style }) => {
       style={[
         {
           fontSize: size,
-          fontWeight: weight || 600,
+          fontWeight: weight || 400,
           color: color,
           textAlign: position,
         },

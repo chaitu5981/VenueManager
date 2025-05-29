@@ -76,7 +76,9 @@ const Home = () => {
         open={openSidebar}
         onOpen={() => setOpenSidebar(true)}
         onClose={() => setOpenSidebar(false)}
-        renderDrawerContent={() => <DrawerContent />}
+        renderDrawerContent={() => (
+          <DrawerContent hideDrawer={() => setOpenSidebar(false)} />
+        )}
       >
         <View style={{ flexDirection: "row", gap: 30, padding: 20 }}>
           <TouchableOpacity onPress={() => setOpenSidebar(true)}>

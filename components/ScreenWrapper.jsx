@@ -10,11 +10,17 @@ import {
 import { View, Text } from "react-native";
 const ScreenWrapper = ({ children, customStyle }) => {
   return (
-    <KeyboardAvoidingView style={[{ flex: 1 }]}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAvoidingView
+      style={[{ flex: 1, width: "100%" }]}
+      behavior={Platform.OS == "android" ? "padding" : undefined}
+    >
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+        style={{ width: "100%" }}
+      >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.container, customStyle]}
+          contentContainerStyle={[styles.container]}
           showsVerticalScrollIndicator={false}
         >
           {children}
@@ -31,6 +37,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     gap: 15,
+    width: "100%",
     backgroundColor: "white",
   },
 });
