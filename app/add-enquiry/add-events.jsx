@@ -11,7 +11,6 @@ const DisplayInfo = ({ label, value }) => (
   </View>
 );
 const AddEvents = () => {
-  const { enquiry, eventDates } = useAddEnquiryContext();
   const { name, phone, address } = enquiry;
   return (
     <ScreenWrapper>

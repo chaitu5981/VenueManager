@@ -7,6 +7,7 @@ const store = configureStore({
     location: locationReducer,
     user: userReducer,
   },
+  devTools: true,
 });
 
 export default store;

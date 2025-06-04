@@ -7,13 +7,14 @@ const CustomTextInput = ({
   onChange,
   customStyle,
   inputStyle,
+  optional = false,
   ...inputProps
 }) => {
   return (
     <View style={customStyle}>
       <TextInput
         style={inputStyle}
-        label={label}
+        label={optional ? label : label + "*"}
         error={!!error}
         mode="outlined"
         value={value}

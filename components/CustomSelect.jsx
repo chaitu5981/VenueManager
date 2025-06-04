@@ -67,7 +67,7 @@ const CustomSelect = ({
       >
         <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.modalBox}>
                 {searchable && (
                   <TextInput

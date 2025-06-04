@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
 import Typo from "./Typo";
-import Modal from "react-native-modal";
+// import Modal from "react-native-modal";
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Calendar } from "react-native-calendars";
@@ -9,7 +16,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
 import { formatDate } from "../utils/helper";
 const DatePicker = ({ eventDates, onChange }) => {
-  const selectedDates = eventDates.map((d) => formatDate(d));
+  // const selectedDates = eventDates.map((d) => formatDate(d));
   const [markedDates, setMarkedDates] = useState([]);
 
   const [showPicker, setShowPicker] = useState(false);
@@ -18,11 +25,14 @@ const DatePicker = ({ eventDates, onChange }) => {
     let newDates;
     if (markedDates.includes(date))
       newDates = markedDates.filter((d) => d != date);
-    else newDates = [...markedDates, date];
+    else {
+      newDates = [...markedDates, date];
+      newDates.sort((a, b) => new Date(a) - new Date(b));
+    }
     setMarkedDates(newDates);
   };
   const getSelectedDates = () => {
-    return selectedDates.join(",");
+    return eventDates.join(",");
   };
   const getMarkedDates = () => {
     let marked = {};
@@ -47,29 +57,38 @@ const DatePicker = ({ eventDates, onChange }) => {
           color="black"
         />
       </TouchableOpacity>
-      <Modal isVisible={showPicker} onBackdropPress={cancelSelDates}>
-        <View style={styles.modal}>
-          <Calendar
-            onDayPress={(day) => addMarkedDate(day)}
-            markedDates={getMarkedDates()}
-          />
-          <View
-            style={{ flexDirection: "row", gap: 20, alignSelf: "flex-end" }}
-          >
-            <Button mode="text" onPress={cancelSelDates}>
-              Cancel
-            </Button>
-            <Button
-              mode="text"
-              onPress={() => {
-                onChange(markedDates.map((dateStr) => new Date(dateStr)));
-                setShowPicker(false);
-              }}
-            >
-              OK
-            </Button>
+      <Modal
+        visible={showPicker}
+        onRequestClose={() => setShowPicker(false)}
+        transparent
+        animationType="slide"
+      >
+        <TouchableWithoutFeedback onPress={cancelSelDates}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Calendar
+                onDayPress={(day) => addMarkedDate(day)}
+                markedDates={getMarkedDates()}
+              />
+              <View
+                style={{ flexDirection: "row", gap: 20, alignSelf: "flex-end" }}
+              >
+                <Button mode="text" onPress={cancelSelDates}>
+                  Cancel
+                </Button>
+                <Button
+                  mode="text"
+                  onPress={() => {
+                    onChange(markedDates);
+                    setShowPicker(false);
+                  }}
+                >
+                  OK
+                </Button>
+              </View>
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
@@ -86,7 +105,17 @@ const styles = StyleSheet.create({
     borderColor: "#C0BDC0",
     backgroundColor: "white",
   },
-  modal: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    // maxHeight: "70%",
     backgroundColor: "white",
+    width: "70%",
+    padding: 15,
+    borderRadius: 10,
   },
 });

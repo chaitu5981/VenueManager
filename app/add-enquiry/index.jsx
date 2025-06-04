@@ -7,9 +7,19 @@ import DatePicker from "../../components/DatePicker";
 import CustomButton from "../../components/CustomButton";
 import ScreenWrapper from "../../components/ScreenWrapper";
 import { useRouter } from "expo-router";
-import { formatDate } from "../../utils/helper";
+import {
+  formatDate,
+  validateAddress,
+  validateEmail,
+  validateName,
+  validatePhone,
+} from "../../utils/helper";
 import { useAddEnquiryContext } from "./_layout";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import CustomSelect from "../../components/CustomSelect";
+import axios from "axios";
+import { Toast } from "toastify-react-native";
 const emptyErrors = {
   name: "",
   phone: "",
@@ -19,43 +29,66 @@ const emptyErrors = {
 };
 
 const AddEnquiry = () => {
-  const { enquiry, setEnquiry, eventDates, setEventDates } =
-    useAddEnquiryContext();
-  const [formData, setFormData] = useState({ ...enquiry, eventDates });
+  const [enquiry, setEnquiry] = useState({
+    name: "",
+    code: "91",
+    phone: "",
+    email: "",
+    address: "",
+    notes: "",
+    eventDates: [],
+  });
   const [errors, setErrors] = useState(emptyErrors);
+  const { user } = useSelector((state) => state.user);
+  const locationState = useSelector((state) => state.location);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const handleSubmit = () => {
-    let newErrors = { ...emptyErrors };
-    let isValid = true;
-    const { name, phone, email, eventDates: dates, address, notes } = formData;
-    if (!name.trim()) {
-      newErrors.name = "Please enter name";
-      isValid = false;
-    }
-    if (isNaN(Number(phone)) || phone.trim().length !== 10) {
-      newErrors.phone = "Please enter valid phone number";
-      isValid = false;
-    }
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
 
-    if (email && !emailRegex.test(email)) {
-      (newErrors.email = "Please enter valid email"), (isValid = false);
-    }
-    if (dates.length === 0) {
-      newErrors.eventDates = "Please enter dates of events";
-      isValid = false;
-    }
-    if (!address) {
-      newErrors.address = "Please enter address";
-      isValid = false;
-    }
-    if (!isValid) {
-      setErrors(newErrors);
-    } else {
-      setErrors(emptyErrors);
-      setEnquiry({ ...enquiry, name, phone, email, address, notes });
-      setEventDates(dates);
-      router.push({ pathname: "add-enquiry/add-events" });
+  const validateDates = (dates) => {
+    if (dates.length === 0) return "Enter at least one date";
+    else return "";
+  };
+
+  const handleSubmit = async () => {
+    const { name, phone, email, eventDates, address, notes, code } = enquiry;
+    const nameErr = validateName(name);
+    const phoneErr = validatePhone(phone);
+    const emailErr = validateEmail(email);
+    const eventDatesErr = validateDates(eventDates);
+    const addressErr = validateAddress(address);
+    const newErrors = {
+      name: nameErr,
+      phone: phoneErr,
+      email: emailErr,
+      eventDates: eventDatesErr,
+      address: addressErr,
+    };
+    setErrors(newErrors);
+    if (!nameErr && !phoneErr && !emailErr && !eventDatesErr && !addressErr) {
+      try {
+        setLoading(true);
+        const { data } = await axios.post({
+          user_id: user.user_id,
+          name,
+          country_code: code,
+          phone_no: phone,
+          email,
+          appointment_date: eventDates,
+          notes,
+        });
+        if (data.status_code == 200) {
+          Toast.success(data.message);
+          router.replace({
+            pathname: "/add-enquiry/add-events",
+            params: {
+              enquiryId: data.enquiry_id,
+            },
+          });
+        } else Toast.error(data.message);
+      } catch (error) {
+        console.log(error);
+        Toast.error("Internal Error");
+      }
     }
   };
   return (
@@ -63,41 +96,58 @@ const AddEnquiry = () => {
       <ScreenWrapper>
         <CustomTextInput
           label={"Enquiry Person Name"}
-          value={formData.name}
+          value={enquiry.name}
           error={errors.name}
-          onChange={(v) => setFormData({ ...formData, name: v })}
+          onChange={(v) => {
+            setEnquiry({ ...enquiry, name: v });
+            setErrors({ ...errors, name: validateName(v) });
+          }}
         />
         <View style={{ flexDirection: "row", gap: 5 }}>
-          <View>
-            <TextInput
-              value="+91"
-              label={"Code"}
-              mode="outlined"
-              style={{ width: 80, alignSelf: "auto" }}
-            />
-          </View>
+          <CustomSelect
+            label={"Code"}
+            loading={locationState.loading}
+            searchable
+            options={
+              locationState.countries.length > 0
+                ? locationState.countries.map((c) => ({
+                    label: "+" + c.country_code,
+                    value: c.country_code,
+                  }))
+                : []
+            }
+            value={"+" + enquiry.code}
+            onSelect={(v) => setEnquiry({ ...enquiry, code: v })}
+            customStyle={{ width: 100 }}
+          />
           <CustomTextInput
-            customStyle={{ flex: 1 }}
-            label={"Phone No"}
-            keyboardType={"numeric"}
-            maxLength={10}
+            label={"Phone"}
+            value={enquiry.phone}
             error={errors.phone}
-            value={formData.phone}
-            onChange={(text) => setFormData({ ...formData, phone: text })}
+            customStyle={{ flex: 1 }}
+            onChange={(v) => {
+              setEnquiry({ ...enquiry, phone: v });
+              setErrors({ ...errors, phone: validatePhone(v) });
+            }}
           />
         </View>
         <CustomTextInput
+          optional
           label={"Email(optional)"}
-          value={formData.email}
+          value={enquiry.email}
           error={errors.email}
-          onChange={(v) => setFormData({ ...formData, email: v })}
+          onChange={(v) => {
+            setFormData({ ...enquiry, email: v });
+            setErrors({ ...errors, email: validateEmail(v) });
+          }}
         />
         <View>
           <DatePicker
-            eventDates={formData.eventDates}
-            onChange={(dates) =>
-              setFormData({ ...formData, eventDates: dates })
-            }
+            eventDates={enquiry.eventDates}
+            onChange={(dates) => {
+              setEnquiry({ ...enquiry, eventDates: dates });
+              setErrors({ ...errors, eventDates: validateDates(dates) });
+            }}
           />
           {errors.eventDates && (
             <HelperText visible={!!errors.eventDates} type="error">
@@ -107,16 +157,20 @@ const AddEnquiry = () => {
         </View>
         <CustomTextInput
           label={"Address"}
-          value={formData.address}
+          value={enquiry.address}
           error={errors.address}
-          onChange={(v) => setFormData({ ...formData, address: v })}
+          onChange={(v) => {
+            setEnquiry({ ...enquiry, address: v });
+            setErrors({ ...errors, address: validateAddress(v) });
+          }}
         />
         <CustomTextInput
           multiline
+          optional
           label={"Notes(optional)"}
-          value={formData.notes}
+          value={enquiry.notes}
           inputStyle={{ height: 100 }}
-          onChange={(v) => setFormData({ ...formData, notes: v })}
+          onChange={(v) => setEnquiry({ ...enquiry, notes: v })}
         />
         <CustomButton text="NEXT" onPress={handleSubmit} />
       </ScreenWrapper>
