@@ -12,7 +12,6 @@ import CustomTextInput from "./CustomTextInput";
 
 const TimePicker = ({ label, value, onConfirm, error }) => {
   const [showTimePicker, setShowTimePicker] = useState(false);
-  console.log(value);
   return (
     <View>
       <Pressable onPress={() => setShowTimePicker(true)}>
@@ -27,12 +26,8 @@ const TimePicker = ({ label, value, onConfirm, error }) => {
         isVisible={showTimePicker}
         mode="time"
         onConfirm={(v) => {
-          onConfirm(
-            v.toLocaleTimeString("en-in", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
+          onConfirm(v);
+
           setShowTimePicker(false);
         }}
         onCancel={() => setShowTimePicker(false)}

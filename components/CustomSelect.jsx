@@ -15,6 +15,7 @@ import { ActivityIndicator, Button, TextInput } from "react-native-paper";
 const CustomSelect = ({
   label,
   value,
+  optional = false,
   onSelect,
   searchable = false,
   options,
@@ -47,6 +48,7 @@ const CustomSelect = ({
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <CustomTextInput
           label={label}
+          optional={optional}
           error={error}
           customStyle={customStyle}
           value={value}

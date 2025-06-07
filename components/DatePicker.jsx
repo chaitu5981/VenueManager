@@ -16,8 +16,8 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
 import { formatDate } from "../utils/helper";
 const DatePicker = ({ eventDates, onChange }) => {
-  // const selectedDates = eventDates.map((d) => formatDate(d));
-  const [markedDates, setMarkedDates] = useState([]);
+  const selectedDates = eventDates.map((d) => formatDate(d));
+  const [markedDates, setMarkedDates] = useState(selectedDates);
 
   const [showPicker, setShowPicker] = useState(false);
   const addMarkedDate = (day) => {

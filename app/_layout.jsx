@@ -1,14 +1,14 @@
 import { Stack, useSegments } from "expo-router";
 import { Platform, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { PaperProvider, DefaultTheme } from "react-native-paper";
-import AuthProvider from "../contexts/AuthProvider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import store from "../store";
 import ToastManager from "toastify-react-native";
-
+import "expo-dev-client";
+import "expo-dev-menu";
 const theme = {
   ...DefaultTheme,
   colors: {

@@ -4,18 +4,16 @@ import axios from "axios";
 const initialState = {
   loading: false,
   error: null,
-  user: null,
-  venue: null,
-  subVenues: [],
-  rooms: [],
+  enquiry: null,
+  events: [],
 };
 
-export const getUserInfo = createAsyncThunk(
-  "user/getUserInfo",
-  async (userId, thunkApi) => {
+export const getEnquiryInfo = createAsyncThunk(
+  "enquiry/getEnquiryInfo",
+  async (enquiryId, thunkApi) => {
     try {
       const { data } = await axios(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/getUserInfo?user_id=${userId}`
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/enquiry/getEnquiryDetails?enquiry_id=${enquiryId}`
       );
       return data;
     } catch (error) {
@@ -24,38 +22,17 @@ export const getUserInfo = createAsyncThunk(
   }
 );
 
-export const getRoomsInfo = createAsyncThunk(
-  "user/getRoomsInfo",
-  async (userId, thunkApi) => {
-    try {
-      const { data } = await axios(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/users/getRoomsList?user_id=${userId}`
-      );
-      return data;
-    } catch (error) {
-      return thunkApi.rejectWithValue("Internal Error");
-    }
-  }
-);
-
-const userSlice = createSlice({
-  name: "user",
+const enquirySlice = createSlice({
+  name: "enquiry",
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.venue = null;
-      state.subVenues = [];
-      state.rooms = [];
-    },
-  },
+
   extraReducers: (builder) => {
     builder
-      .addCase(getUserInfo.pending, (state) => {
+      .addCase(getEnquiryInfo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserInfo.fulfilled, (state, action) => {
+      .addCase(getEnquiryInfo.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload.status_code == 200) {
           const { user_info, venue_info, subvenue_info } = action.payload;
@@ -94,6 +71,3 @@ const userSlice = createSlice({
       });
   },
 });
-
-export const { logout } = userSlice.actions;
-export default userSlice.reducer;

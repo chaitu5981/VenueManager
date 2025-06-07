@@ -4,40 +4,61 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Typo from "./Typo";
 import CustomTextInput from "./CustomTextInput";
+import { validateNumber, validateText } from "../utils/helper";
 const ServicesForm = ({ services, setServices, errors, setErrors }) => {
   const addService = () => {
-    setServices([...services, { name: "", serviceCost: 0 }]);
+    let n = services.length;
+    let id = n ? services[n - 1].id + 1 : 1;
+    setServices([...services, { id, name: "", serviceCost: "" }]);
     setErrors({
       ...errors,
-      services: [...errors.services, { name: "", serviceCost: "" }],
+      services: [...errors.services, { id, name: "", serviceCost: "" }],
     });
   };
   const deleteService = (index) => {
-    setServices(services.filter((s, i) => i !== index));
-    const newErrors = errors.services.filter((_, i) => i !== index);
+    setServices((prev) => prev.filter((s, i) => s.id !== index));
+    const newErrors = errors.services.filter((e, i) => e.id !== index);
     setErrors({ ...errors, services: newErrors });
   };
   const addServiceName = (v, index) => {
-    const newServices = services.map((service, i) => {
-      if (i === index)
+    const newServices = services.map((service) => {
+      if (service.id === index)
         return {
           ...service,
           name: v,
         };
       else return { ...service };
     });
+    const newErrors = errors.services.map((error, i) => {
+      if (error.id == index)
+        return {
+          ...error,
+          name: validateText(v, "Service Name"),
+        };
+      else return { ...error };
+    });
     setServices(newServices);
+    setErrors({ ...errors, services: newErrors });
   };
   const addServiceCost = (v, index) => {
     const newServices = services.map((service, i) => {
-      if (i === index)
+      if (service.id === index)
         return {
           ...service,
-          serviceCost: Number(v),
+          serviceCost: v,
         };
       else return { ...service };
     });
+    const newErrors = errors.services.map((error, i) => {
+      if (error.id == index)
+        return {
+          ...error,
+          serviceCost: validateNumber(v, "Service Charge"),
+        };
+      else return { ...error };
+    });
     setServices(newServices);
+    setErrors({ ...errors, services: newErrors });
   };
   return (
     <View style={{ gap: 10 }}>
@@ -59,18 +80,20 @@ const ServicesForm = ({ services, setServices, errors, setErrors }) => {
       </View>
       {services.length > 0 &&
         services.map((service, i) => (
-          <View style={{ gap: 5 }} key={i}>
+          <View style={{ gap: 5 }} key={service.id}>
             <View
-              style={{ flexDirection: "row", gap: 3, alignItems: "flex-start" }}
+              style={{ flexDirection: "row", gap: 3, alignItems: "center" }}
             >
               <CustomTextInput
                 label={"Service Name"}
                 value={service.name}
                 customStyle={{ flexGrow: 1 }}
-                onChange={(v) => addServiceName(v, i)}
+                onChange={(v) => {
+                  addServiceName(v, service.id);
+                }}
                 error={errors.services[i].name}
               />
-              <TouchableOpacity onPress={() => deleteService(i)}>
+              <TouchableOpacity onPress={() => deleteService(service.id)}>
                 <MaterialCommunityIcons
                   name="delete-circle"
                   size={40}
@@ -80,8 +103,8 @@ const ServicesForm = ({ services, setServices, errors, setErrors }) => {
             </View>
             <CustomTextInput
               label={"Service Charge"}
-              value={service.serviceCost.toString()}
-              onChange={(v) => addServiceCost(v, i)}
+              value={service.serviceCost}
+              onChange={(v) => addServiceCost(v, service.id)}
               error={errors.services[i].serviceCost}
             />
           </View>

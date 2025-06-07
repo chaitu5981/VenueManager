@@ -50,36 +50,36 @@ export const eventTypes = [
     value: "traditional",
     label: "Traditional Events",
     subEventTypes: [
-      { value: "engagement", label: "1.Engagement" },
-      { value: "wedding", label: "2.Wedding" },
-      { value: "reception", label: "3.Reception" },
+      { value: "Engagement", label: "1.Engagement" },
+      { value: "Wedding", label: "2.Wedding" },
+      { value: "Reception", label: "3.Reception" },
     ],
   },
   {
     value: "regular",
     label: "Regular Events",
     subEventTypes: [
-      { value: "birthday", label: "1.Birthday Event" },
-      { value: "saree", label: "2.Saree Ceremony" },
-      { value: "dhoti", label: "3.Dhoti Ceremony" },
+      { value: "Birthday", label: "1.Birthday Event" },
+      { value: "Saree", label: "2.Saree Ceremony" },
+      { value: "Dhoti", label: "3.Dhoti Ceremony" },
     ],
   },
   {
     value: "corporate",
     label: "Corporate Events",
     subEventTypes: [
-      { value: "productLaunch", label: "1.Product Launch" },
-      { value: "conference", label: "2.Conference Meeting" },
-      { value: "meetUps", label: "3.Meet-Ups" },
+      { value: "ProductLaunch", label: "1.Product Launch" },
+      { value: "Conference", label: "2.Conference Meeting" },
+      { value: "MeetUps", label: "3.Meet-Ups" },
     ],
   },
   {
     value: "hangouts",
     label: "Hangouts (Farmhouses/Villas)",
     subEventTypes: [
-      { value: "family", label: "1.Family" },
-      { value: "friends", label: "2.Friends" },
-      { value: "employees", label: "3.Employees" },
+      { value: "Family", label: "1.Family" },
+      { value: "Friends", label: "2.Friends" },
+      { value: "Employees", label: "3.Employees" },
     ],
   },
   { value: "others", label: "Others" },
@@ -87,44 +87,56 @@ export const eventTypes = [
 
 export const bookingTypes = [
   {
-    value: "breakfast",
-    label: "1.Breakfast",
+    value: "Breakfast",
+    label: "Breakfast",
   },
   {
-    value: "lunch",
-    label: "2.Lunch",
+    value: "Lunch",
+    label: "Lunch",
   },
   {
-    value: "dinner",
-    label: "3.Dinner",
+    value: "Dinner",
+    label: "Dinner",
   },
   {
-    value: "wholeDay",
-    label: "4.Book for Whole day",
+    value: "WholeDay",
+    label: "Book for Whole day",
   },
 ];
 export const diningMenu = [
   {
-    value: "breakfast",
+    value: "Breakfast",
     label: "1.Breakfast",
   },
   {
-    value: "veg",
-    label: "2.Veg",
+    value: "Tea And Snacks",
+    label: "2.Tea And Snacks",
   },
   {
-    value: "nonVeg",
-    label: "3.Non Veg",
+    value: "Veg",
+    label: "3.Veg",
+  },
+  {
+    value: "Non-Veg",
+    label: "4.Non Veg",
+  },
+  {
+    value: "Veg with Alcohol",
+    label: "4.Veg with Alcohol",
+  },
+  {
+    value: "Non-Veg with Alcohol",
+    label: "5.Non Veg with Alcohol",
   },
 ];
 
 export const accommodationTypes = [
   {
-    value: "perRoom",
+    value: "room",
     label: "Charge per Room",
   },
   {
-    value: "perPerson",
+    value: "person",
     label: "Charge per Person",
   },
 ];

@@ -1,13 +1,17 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Typo from "./Typo";
-import { capitalize, formatDate } from "../utils/helper";
+import {
+  capitalize,
+  formatDate,
+  validateNumber,
+  validateText,
+} from "../utils/helper";
 import { useState } from "react";
 import {
   accommodationTypes,
   bookingTypes,
   diningMenu,
   eventTypes,
-  venueTypes,
 } from "../data/constants";
 import { colors } from "../data/theme";
 import { HelperText, RadioButton } from "react-native-paper";
@@ -18,32 +22,35 @@ import TimePicker from "./TimePicker";
 import RoomsForm from "./RoomsForm";
 import PersonsForm from "./PersonsForm";
 import ServicesForm from "./ServicesForm";
-import { useAddEnquiryContext } from "../app/add-enquiry/_layout";
 import { useRouter } from "expo-router";
+import { useSelector } from "react-redux";
+import CustomMultiSelect from "./CustomMultiSelect";
 
 const emptyDining = {
   menu: "",
-  noOfPlates: 0,
-  costPerPlate: 0,
-  totalDiningCost: 0,
+  noOfPlates: "",
+  costPerPlate: "",
+  totalDiningCost: "",
 };
 const emptyAccommodation = {
   type: "",
-  rooms: {
-    noOfRooms: 0,
-    list: [],
-  },
-  persons: {
-    noOfPersons: 0,
-    costPerPerson: 0,
-    totalPersonsCost: 0,
-    list: [],
-  },
+  noOfRooms: "",
+  noOfPersons: "",
+  // rooms: {
+  //   list: [],
+  // },
+  // persons: {
+  //   costPerPerson: "",
+  //   totalPersonsCost: "",
+  //   list: [],
+  // },
 };
 const emptyErrors = {
+  eventDate: "",
   subEventType: "",
+  eventName: "",
   subVenue: "",
-  bookingType: "",
+  bookingFor: "",
   noOfGuests: "",
   checkInTime: "",
   checkOutTime: "",
@@ -51,34 +58,38 @@ const emptyErrors = {
   noOfPlates: "",
   costPerPlate: "",
   noOfRooms: "",
-  rooms: [],
+  // rooms: [],
   noOfPersons: "",
-  personCost: "",
-  persons: [],
+  // personCost: "",
+  // persons: [],
   services: [],
 };
-const emptyEvent = (eventDate) => ({
+const emptyEvent = () => ({
   eventType: "traditional",
   subEventType: "",
+  eventName: "",
   subVenue: "",
-  bookingType: "",
-  noOfGuests: 0,
-  eventDate,
+  bookingFor: [],
+  noOfGuests: "",
+  eventDate: "",
   checkInTime: "",
   checkOutTime: "",
-  rent: 0,
+  rent: "",
 });
-const EventForm = () => {
-  const { enquiry, setEnquiry, eventDates } = useAddEnquiryContext();
-
+const EventForm = ({ setEvents, enquiry, enquiryId }) => {
   const [eventNo, setEventNo] = useState(1);
-  const [event, setEvent] = useState(() => emptyEvent(eventDates[0]));
+  const [event, setEvent] = useState(emptyEvent);
   const [dining, setDining] = useState(emptyDining);
   const [accommodation, setAccommodation] = useState(emptyAccommodation);
   const [services, setServices] = useState([]);
   const [errors, setErrors] = useState({ ...emptyErrors });
   const router = useRouter();
-  const eventDatesData = eventDates.map((date) => ({
+  const { subVenues } = useSelector((state) => state.user);
+  const subVenuesData = subVenues.map((subVenue) => ({
+    label: `${subVenue.sub_venue_name}-${subVenue.sub_venue_capacity}`,
+    value: subVenue,
+  }));
+  const eventDatesData = enquiry.eventDates.map((date) => ({
     value: date,
     label: formatDate(date),
   }));
@@ -88,51 +99,65 @@ const EventForm = () => {
     );
     return selectedEventType.subEventTypes;
   };
-  const handleSelectAccommodation = (v) => {
-    if (v == "perRoom") {
-      setAccommodation({
-        ...accommodation,
-        type: v,
-        rooms: {
-          noOfRooms: 1,
-          list: [{ roomNo: "", roomCost: 0 }],
-        },
-        persons: {
-          noOfPersons: 0,
-          list: [],
-        },
-      });
-      setErrors({
-        ...errors,
-        rooms: [{ roomNo: "", roomCost: "" }],
-        persons: [],
-      });
+  // const handleSelectAccommodation = (v) => {
+  //   if (v == "perRoom") {
+  //     setAccommodation({
+  //       ...accommodation,
+  //       type: v,
+  //       rooms: {
+  //         noOfRooms: 1,
+  //         list: [{ roomNo: "", roomCost: 0 }],
+  //       },
+  //       persons: {
+  //         noOfPersons: 0,
+  //         list: [],
+  //       },
+  //     });
+  //     setErrors({
+  //       ...errors,
+  //       rooms: [{ roomNo: "", roomCost: "" }],
+  //       persons: [],
+  //     });
+  //   } else {
+  //     setAccommodation({
+  //       ...accommodation,
+  //       type: v,
+  //       rooms: {
+  //         noOfRooms: 0,
+  //         list: [],
+  //       },
+  //       persons: {
+  //         noOfPersons: 1,
+  //         personCost: 0,
+  //         list: [{ name: "", contactNo: "" }],
+  //       },
+  //     });
+  //     setErrors({
+  //       ...errors,
+  //       persons: [{ name: "", contactNo: "" }],
+  //       rooms: [],
+  //     });
+  //   }
+  // };
+  const setBookingFor = (v) => {
+    let newBookingFor;
+    if (event.bookingFor.includes(v)) {
+      if (v == "WholeDay") newBookingFor = [];
+      else newBookingFor = event.bookingFor.filter((b) => b != v);
     } else {
-      setAccommodation({
-        ...accommodation,
-        type: v,
-        rooms: {
-          noOfRooms: 0,
-          list: [],
-        },
-        persons: {
-          noOfPersons: 1,
-          personCost: 0,
-          list: [{ name: "", contactNo: "" }],
-        },
-      });
-      setErrors({
-        ...errors,
-        persons: [{ name: "", contactNo: "" }],
-        rooms: [],
-      });
+      if (v == "WholeDay") newBookingFor = bookingTypes.map((b) => b.value);
+      else newBookingFor = [...event.bookingFor, v];
     }
+    setEvent({ ...event, bookingFor: newBookingFor });
+    if (newBookingFor.length == 0)
+      setErrors({ ...errors, bookingFor: "Select Booking For" });
+    else setErrors({ ...errors, bookingFor: "" });
   };
-
-  const validateForm = () => {
-    const newErrors = { ...emptyErrors };
+  const validateEvent = () => {
     const {
+      eventDate,
       subEventType,
+      eventName,
       subVenue,
       bookingType,
       noOfGuests,
@@ -140,139 +165,140 @@ const EventForm = () => {
       checkOutTime,
       rent,
     } = event;
-    let isValid = true;
-    if (!subEventType) {
-      newErrors.subEventType = "Select Sub Event Type";
-      isValid = false;
-    }
-    if (!subVenue) {
-      newErrors.subVenue = "Select Sub Venue";
-      isValid = false;
-    }
-    if (!bookingType) {
-      newErrors.bookingType = "Select Booking Type";
-      isValid = false;
-    }
-    if (isNaN(noOfGuests) || noOfGuests <= 0) {
-      newErrors.noOfGuests = "Enter valid number";
-      isValid = false;
-    }
-    if (!checkInTime) {
-      newErrors.checkInTime = "Enter Check In Time";
-      isValid = false;
-    }
-    if (!checkOutTime) {
-      newErrors.checkOutTime = "Enter Check Out Time";
-      isValid = false;
-    }
-    if (isNaN(rent) || rent <= 0) {
-      newErrors.rent = "Enter valid Rent Charge";
-      isValid = false;
-    }
+    const eventDateErr = validateText(eventDate, "Event Date");
+    const subEventTypeErr = validateText(subEventType, "Event Type");
+    const eventNameErr = validateText(eventName, "Event Name");
+    const subVenueErr = validateText(subVenue, "Sub Venue");
+    const bookingTypeErr = validateText(bookingType, "Booking Type");
+    const noOfGuestsErr = validateNumber(noOfGuests, "No of Guests");
+    const checkInTimeErr = validateText(checkInTime, "Check-in time");
+    const checkOutTimeErr = validateText(checkOutTime, "Check-out time");
+    let noOfPlatesErr = "",
+      costPerPlateErr = "";
     if (dining.menu) {
-      if (isNaN(dining.noOfPlates) || dining.noOfPlates <= 0) {
-        newErrors.noOfPlates = "Enter valid No Of Plates";
-        isValid = false;
-      }
-      if (isNaN(dining.costPerPlate) || dining.costPerPlate <= 0) {
-        newErrors.costPerPlate = "Enter valid Cost per Plate";
-        isValid = false;
-      }
+      noOfPlatesErr = validateNumber(dining.noOfPlates);
+      costPerPlateErr = validateNumber(dining.costPerPlate);
     }
-    if (accommodation.type == "perRoom") {
-      if (
-        isNaN(accommodation.rooms.noOfRooms) ||
-        accommodation.rooms.noOfRooms <= 0
-      ) {
-        newErrors.noOfRooms = "Enter valid No of Rooms";
-        isValid = false;
-      }
-      newErrors.rooms = accommodation.rooms.list.map((room, i) => {
-        let roomError = { roomNo: "", roomCost: "" };
-        if (!room.roomNo) {
-          roomError.roomNo = "Enter valid Room No";
-          isValid = false;
-        }
-        if (isNaN(room.roomCost) || room.roomCost <= 0) {
-          roomError.roomCost = "Enter valid Room Cost";
-          isValid = false;
-        }
-        return roomError;
-      });
-    }
-    if (accommodation.type === "perPerson") {
-      if (
-        isNaN(accommodation.persons.noOfPersons) ||
-        accommodation.persons.noOfPersons <= 0
-      ) {
-        newErrors.noOfPersons = "Enter valid No of Persons";
-        isValid = false;
-      }
-      if (
-        isNaN(accommodation.persons.personCost) ||
-        accommodation.persons.personCost <= 0
-      ) {
-        newErrors.personCost = "Enter valid Cost per Person";
-        isValid = false;
-      }
-      newErrors.persons = accommodation.persons.list.map((person, i) => {
-        let personError = { name: "", contactNo: "" };
-        if (!person.name.trim()) {
-          personError.name = "Enter valid Name";
-          isValid = false;
-        }
-        if (!person.contactNo.trim() || person.contactNo.length !== 10) {
-          personError.contactNo = "Enter valid Contact No";
-          isValid = false;
-        }
-        return personError;
-      });
-    }
+    const rentErr = validateNumber(rent, "Rent");
+    let noOfRoomsErr = "",
+      noOfPersonsErr = "";
+    if (accommodation.type == "room")
+      noOfRoomsErr = validateNumber(accommodation.noOfRooms, "No of Rooms");
+    if (accommodation.type == "person")
+      noOfPersonsErr = validateNumber(
+        accommodation.noOfPersons,
+        "No of Persons"
+      );
+    let servicesErrFlag = false;
+    let servicesErr = [];
     if (services.length > 0) {
-      newErrors.services = services.map((service, i) => {
+      servicesErr = services.map((service, i) => {
         let serviceError = { name: "", serviceCost: "" };
         if (!service.name.trim()) {
           serviceError.name = "Enter valid Service Name";
-          isValid = false;
+          servicesErrFlag = true;
         }
         if (isNaN(service.serviceCost) || service.serviceCost <= 0) {
           serviceError.serviceCost = "Enter valid Service Cost";
-          isValid = false;
+          servicesErrFlag = true;
         }
         return serviceError;
       });
     }
+    // console.log(servicesErrFlag);
+
+    const newErrors = {
+      eventDate: eventDateErr,
+      subEventType: subEventTypeErr,
+      eventName: eventNameErr,
+      subVenue: subVenueErr,
+      bookingType: bookingTypeErr,
+      noOfGuests: noOfGuestsErr,
+      checkInTime: checkInTimeErr,
+      checkOutTime: checkOutTimeErr,
+      rent: rentErr,
+      noOfPlates: noOfPlatesErr,
+      costPerPlate: costPerPlateErr,
+      noOfRooms: noOfRoomsErr,
+      noOfPersons: noOfPersonsErr,
+      services: servicesErr,
+    };
     setErrors(newErrors);
-
-    return isValid;
+    return (
+      !eventDateErr &&
+      !subEventTypeErr &&
+      !eventNameErr &&
+      !subVenueErr &&
+      !bookingTypeErr &&
+      !noOfGuestsErr &&
+      !checkInTimeErr &&
+      !checkOutTimeErr &&
+      !rentErr &&
+      !noOfPlatesErr &&
+      !costPerPlateErr &&
+      !noOfRoomsErr &&
+      !noOfPersonsErr &&
+      !servicesErrFlag
+    );
   };
 
-  const saveEvent = () => {
-    if (validateForm()) {
-      setEnquiry({
-        ...enquiry,
-        events: [
-          ...enquiry.events,
-          {
-            ...event,
-            dining: dining.menu && dining,
-            accommodation: accommodation.type && {
-              ...accommodation,
-              rooms: accommodation.rooms.noOfRooms > 0 && accommodation.rooms,
-              persons:
-                accommodation.persons.noOfPersons > 0 && accommodation.persons,
-            },
-            services: services.length > 0 && services,
-          },
-        ],
-      });
-      return true;
-    }
-    return false;
-  };
+  const saveEvent = () => {};
 
   const goToNextEvent = () => {
-    if (saveEvent()) {
+    console.log(errors);
+    console.log(validateEvent());
+    if (validateEvent()) {
+      setEvents((prev) => [
+        ...prev,
+        {
+          enquiry: {
+            user_id: enquiry.userId,
+            enquiry_id: enquiryId,
+            name: enquiry.name,
+            country_code: enquiry.code,
+            phone_no: enquiry.phone,
+            email: enquiry.email,
+            appointment_date: enquiry.eventDates,
+            notes: enquiry.notes,
+          },
+          eventDetails: {
+            event_date: event.eventDate,
+            event_name: event.eventName,
+            event_type: event.subEventType,
+            sub_venue_id: event.subVenue.sub_venue_id,
+            sub_venue: {
+              sub_venue_id: event.subVenue.sub_venue_id,
+              sub_venue_name: event.subVenue.sub_venue_name,
+              sub_venue_type: event.subVenue.sub_venue_type,
+              sub_venue_capacity: event.subVenue.sub_venue_capacity,
+            },
+            booking_for: event.bookingFor,
+            check_in: event.checkInTime,
+            check_out: event.checkOutTime,
+            no_of_guests: event.noOfGuests,
+            rent_charges: event.rent,
+          },
+          event_id: "",
+          accomodationDetails: {
+            charge_type: accommodation.type,
+            no_of_rooms: accommodation.noOfRooms,
+            no_of_persons: accommodation.noOfPersons,
+            rooms_data: [],
+            persons_data: [],
+          },
+          diningDetails: {
+            menu: dining.menu,
+            no_of_plates: dining.noOfPlates,
+            cost_per_plate: dining.costPerPlate,
+            total_menu_cost:
+              Number(dining.costPerPlate) * Number(dining.noOfPlates),
+          },
+          serviceDetails: services.map((s) => ({
+            service_name: s.name,
+            service_charge: s.serviceCost,
+          })),
+        },
+      ]);
       setEvent(emptyEvent);
       setDining(emptyDining);
       setAccommodation(emptyAccommodation);
@@ -289,8 +315,15 @@ const EventForm = () => {
       <CustomSelect
         options={eventDatesData}
         label="Event Date"
-        value={event.eventDate}
-        onSelect={(v) => setEvent({ ...event, eventDate: v })}
+        error={errors.eventDate}
+        value={event.eventDate ? formatDate(event.eventDate) : ""}
+        onSelect={(v) => {
+          setEvent({ ...event, eventDate: v });
+          setErrors({
+            ...errors,
+            eventDate: validateText(v, "Event Type"),
+          });
+        }}
       />
       <View style={styles.eventType}>
         <Typo size={20}>Select Event Type :</Typo>
@@ -329,18 +362,26 @@ const EventForm = () => {
                       <CustomSelect
                         options={getSubEventTypes()}
                         value={event.subEventType}
-                        onSelect={(v) =>
-                          setEvent({ ...event, subEventType: v })
-                        }
+                        onSelect={(v) => {
+                          setEvent({ ...event, subEventType: v });
+                          setErrors({
+                            ...errors,
+                            subEventType: validateText(v, "Event Type"),
+                          });
+                        }}
                         label={`Select ${capitalize(eType.value)} Event`}
                       />
                     ) : (
                       <CustomTextInput
                         label={"Enter Event Type"}
                         value={event.subEventType}
-                        onChange={(v) =>
-                          setEvent({ ...event, subEventType: v })
-                        }
+                        onChange={(v) => {
+                          setEvent({ ...event, subEventType: v.trim() });
+                          setErrors({
+                            ...errors,
+                            subEventType: validateText(v, "Event Type"),
+                          });
+                        }}
                       />
                     ))}
                 </View>
@@ -354,42 +395,89 @@ const EventForm = () => {
           </HelperText>
         )}
       </View>
-      <CustomSelect
-        label="Sub Venue Type"
-        options={venueTypes}
-        value={event.subVenue}
-        onSelect={(v) => setEvent({ ...event, subVenue: v })}
-        error={errors.subVenue}
+      <CustomTextInput
+        label="Event Name"
+        value={event.eventName}
+        onChange={(v) => {
+          setEvent({ ...event, eventName: v });
+          setErrors({ ...errors, eventName: validateText(v, "Event Name") });
+        }}
+        error={errors.eventName}
       />
       <CustomSelect
-        label="BookingType"
+        label="Sub Venue Type"
+        options={subVenuesData}
+        value={event.subVenue.sub_venue_name}
+        onSelect={(v) => {
+          setEvent({ ...event, subVenue: v });
+          setErrors({ ...errors, subVenue: validateText(v, "Sub Venue") });
+        }}
+        error={errors.subVenue}
+      />
+      <CustomMultiSelect
+        label="Booking For"
         options={bookingTypes}
-        value={event.bookingType}
-        onSelect={(v) => setEvent({ ...event, bookingType: v })}
-        error={errors.bookingType}
+        values={event.bookingFor}
+        onSelect={(v) => setBookingFor(v)}
+        error={errors.bookingFor}
       />
       <CustomTextInput
         label={"No of Guests"}
-        value={event.noOfGuests.toString()}
-        onChange={(v) => setEvent({ ...event, noOfGuests: Number(v) })}
+        value={event.noOfGuests}
+        onChange={(v) => {
+          setEvent({ ...event, noOfGuests: v });
+          setErrors({
+            ...errors,
+            noOfGuests: validateNumber(v, "No of Guests"),
+          });
+        }}
         error={errors.noOfGuests}
       />
       <TimePicker
         label={"Check In Time"}
-        value={event.checkInTime}
-        onConfirm={(v) => setEvent({ ...event, checkInTime: v })}
+        value={
+          event.checkInTime
+            ? event.checkInTime.toLocaleTimeString("en-in", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : ""
+        }
+        onConfirm={(v) => {
+          setEvent({ ...event, checkInTime: v });
+          setErrors({
+            ...errors,
+            checkInTime: validateText(v, "Check In Time"),
+          });
+        }}
         error={errors.checkInTime}
       />
       <TimePicker
         label={"Check Out Time"}
-        value={event.checkOutTime}
-        onConfirm={(v) => setEvent({ ...event, checkOutTime: v })}
+        value={
+          event.checkOutTime
+            ? event.checkOutTime.toLocaleTimeString("en-in", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : ""
+        }
+        onConfirm={(v) => {
+          setEvent({ ...event, checkOutTime: v });
+          setErrors({
+            ...errors,
+            checkOutTime: validateText(v, "Check Out Time"),
+          });
+        }}
         error={errors.checkOutTime}
       />
       <CustomTextInput
         label={"Rent Charges"}
-        value={event.rent.toString()}
-        onChange={(v) => setEvent({ ...event, rent: Number(v) })}
+        value={event.rent}
+        onChange={(v) => {
+          setEvent({ ...event, rent: v });
+          setErrors({ ...errors, rent: validateNumber(v, "Rent") });
+        }}
         error={errors.rent}
       />
       <View style={styles.optional}>
@@ -400,24 +488,41 @@ const EventForm = () => {
         <CustomSelect
           options={diningMenu}
           label={"Select Menu"}
+          optional
           value={dining.menu}
           onSelect={(v) => setDining({ ...dining, menu: v })}
         />
         <CustomTextInput
           label={"No Of Plates"}
-          value={dining.noOfPlates.toString()}
-          onChange={(v) => setDining({ ...dining, noOfPlates: Number(v) })}
+          value={dining.noOfPlates}
+          onChange={(v) => {
+            setDining({ ...dining, noOfPlates: v });
+            setErrors({
+              ...errors,
+              noOfPlates: dining.menu ? validateNumber(v, "No of Plates") : "",
+            });
+          }}
           error={errors.noOfPlates}
         />
         <CustomTextInput
           label={"Cost per Plate"}
-          value={dining.costPerPlate.toString()}
-          onChange={(v) => setDining({ ...dining, costPerPlate: Number(v) })}
+          value={dining.costPerPlate}
+          onChange={(v) => {
+            setDining({ ...dining, costPerPlate: v });
+            setErrors({
+              ...errors,
+              costPerPlate: dining.menu
+                ? validateNumber(v, "Cost per Plate")
+                : "",
+            });
+          }}
           error={errors.costPerPlate}
         />
         <CustomTextInput
           label={"Total Menu Cost"}
-          value={(dining.costPerPlate * dining.noOfPlates).toString()}
+          value={(
+            Number(dining.costPerPlate) * Number(dining.noOfPlates)
+          ).toString()}
           editable={false}
         />
       </View>
@@ -428,24 +533,64 @@ const EventForm = () => {
         </View>
         <CustomSelect
           options={accommodationTypes}
+          optional
           label={"Select Type"}
           value={accommodation.type}
-          onSelect={(v) => handleSelectAccommodation(v)}
+          onSelect={(v) => setAccommodation({ ...accommodation, type: v })}
         />
-        {accommodation.type === "perRoom" && (
-          <RoomsForm
-            accommodation={accommodation}
-            setAccommodation={setAccommodation}
-            errors={errors}
-            setErrors={setErrors}
+        {accommodation.type === "room" && (
+          // <RoomsForm
+          //   accommodation={accommodation}
+          //   setAccommodation={setAccommodation}
+          //   errors={errors}
+          //   setErrors={setErrors}
+          // />
+
+          <CustomTextInput
+            label={"No Of Rooms"}
+            value={accommodation.noOfRooms}
+            onChange={(v) => {
+              setAccommodation({
+                ...accommodation,
+                noOfRooms: v,
+                noOfPersons: "",
+              });
+              setErrors({
+                ...errors,
+                noOfRooms:
+                  accommodation.type == "room"
+                    ? validateNumber(v, "No Of Rooms")
+                    : "",
+              });
+            }}
+            error={errors.noOfRooms}
           />
         )}
-        {accommodation.type === "perPerson" && (
-          <PersonsForm
-            accommodation={accommodation}
-            setAccommodation={setAccommodation}
-            errors={errors}
-            setErrors={setErrors}
+        {accommodation.type === "person" && (
+          // <PersonsForm
+          //   accommodation={accommodation}
+          //   setAccommodation={setAccommodation}
+          //   errors={errors}
+          //   setErrors={setErrors}
+          // />
+          <CustomTextInput
+            label={"No Of Persons"}
+            value={accommodation.noOfPersons}
+            onChange={(v) => {
+              setAccommodation({
+                ...accommodation,
+                noOfPersons: v,
+                noOfRooms: "",
+              });
+              setErrors({
+                ...errors,
+                noOfPersons:
+                  accommodation.type == "person"
+                    ? validateNumber(v, "No Of Persons")
+                    : "",
+              });
+            }}
+            error={errors.noOfPersons}
           />
         )}
       </View>

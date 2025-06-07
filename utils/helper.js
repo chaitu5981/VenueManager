@@ -6,6 +6,16 @@ export const capitalize = (s) => {
   return s[0].toUpperCase() + s.slice(1);
 };
 
+export const validateText = (t, fieldName) => {
+  if (!t) return `Enter Valid ${fieldName}`;
+  else return "";
+};
+
+export const validateNumber = (v, fieldName) =>
+  isNaN(Number(v.trim())) || Number(v.trim()) <= 0
+    ? `Enter Valid  ${fieldName}`
+    : "";
+
 export const validateName = (name) => {
   if (!name.trim()) return "Enter Valid Name";
   else return "";

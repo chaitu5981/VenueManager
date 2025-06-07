@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
 
-const AddEnquiryContext = createContext();
 import { StyleSheet, Text, View } from "react-native";
 import Header from "../../components/Header";
 const AddEnquiryLayout = () => {
