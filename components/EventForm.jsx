@@ -6,7 +6,7 @@ import {
   validateNumber,
   validateText,
 } from "../utils/helper";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   accommodationTypes,
   bookingTypes,
@@ -76,20 +76,21 @@ const emptyEvent = () => ({
   checkOutTime: "",
   rent: "",
 });
-const EventForm = ({ setEvents, enquiry, enquiryId }) => {
+const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
   const [eventNo, setEventNo] = useState(1);
   const [event, setEvent] = useState(emptyEvent);
   const [dining, setDining] = useState(emptyDining);
   const [accommodation, setAccommodation] = useState(emptyAccommodation);
   const [services, setServices] = useState([]);
   const [errors, setErrors] = useState({ ...emptyErrors });
+  const [shouldSubmitEnquiry, setShouldSubmitEnquiry] = useState(false);
   const router = useRouter();
   const { subVenues } = useSelector((state) => state.user);
   const subVenuesData = subVenues.map((subVenue) => ({
     label: `${subVenue.sub_venue_name}-${subVenue.sub_venue_capacity}`,
     value: subVenue,
   }));
-  const eventDatesData = enquiry.eventDates.map((date) => ({
+  const eventDatesData = eventDates.map((date) => ({
     value: date,
     label: formatDate(date),
   }));
@@ -159,7 +160,7 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
       subEventType,
       eventName,
       subVenue,
-      bookingType,
+      bookingFor,
       noOfGuests,
       checkInTime,
       checkOutTime,
@@ -169,10 +170,11 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
     const subEventTypeErr = validateText(subEventType, "Event Type");
     const eventNameErr = validateText(eventName, "Event Name");
     const subVenueErr = validateText(subVenue, "Sub Venue");
-    const bookingTypeErr = validateText(bookingType, "Booking Type");
     const noOfGuestsErr = validateNumber(noOfGuests, "No of Guests");
     const checkInTimeErr = validateText(checkInTime, "Check-in time");
     const checkOutTimeErr = validateText(checkOutTime, "Check-out time");
+    const bookingForErr =
+      bookingFor.length == 0 ? "Enter Valid Booking Type " : "";
     let noOfPlatesErr = "",
       costPerPlateErr = "";
     if (dining.menu) {
@@ -198,21 +200,21 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
           serviceError.name = "Enter valid Service Name";
           servicesErrFlag = true;
         }
-        if (isNaN(service.serviceCost) || service.serviceCost <= 0) {
+        if (validateNumber(service.serviceCost)) {
           serviceError.serviceCost = "Enter valid Service Cost";
           servicesErrFlag = true;
         }
         return serviceError;
       });
     }
-    // console.log(servicesErrFlag);
+    console.log(servicesErrFlag, "Services flag");
 
     const newErrors = {
       eventDate: eventDateErr,
       subEventType: subEventTypeErr,
       eventName: eventNameErr,
       subVenue: subVenueErr,
-      bookingType: bookingTypeErr,
+      bookingFor: bookingForErr,
       noOfGuests: noOfGuestsErr,
       checkInTime: checkInTimeErr,
       checkOutTime: checkOutTimeErr,
@@ -229,7 +231,7 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
       !subEventTypeErr &&
       !eventNameErr &&
       !subVenueErr &&
-      !bookingTypeErr &&
+      !bookingForErr &&
       !noOfGuestsErr &&
       !checkInTimeErr &&
       !checkOutTimeErr &&
@@ -242,25 +244,12 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
     );
   };
 
-  const saveEvent = () => {};
-
-  const goToNextEvent = () => {
-    console.log(errors);
-    console.log(validateEvent());
+  const saveEvent = () => {
     if (validateEvent()) {
+      console.log("Hi");
       setEvents((prev) => [
         ...prev,
         {
-          enquiry: {
-            user_id: enquiry.userId,
-            enquiry_id: enquiryId,
-            name: enquiry.name,
-            country_code: enquiry.code,
-            phone_no: enquiry.phone,
-            email: enquiry.email,
-            appointment_date: enquiry.eventDates,
-            notes: enquiry.notes,
-          },
           eventDetails: {
             event_date: event.eventDate,
             event_name: event.eventName,
@@ -306,9 +295,12 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
       setEventNo(eventNo + 1);
     }
   };
-  const handleSubmit = () => {
-    if (saveEvent()) router.replace("enquiry-details");
-  };
+  useEffect(() => {
+    if (shouldSubmitEnquiry) {
+      submitEnquiry();
+      setShouldSubmitEnquiry(false);
+    }
+  }, [shouldSubmitEnquiry]);
   return (
     <View style={{ marginVertical: 20, gap: 15 }}>
       <Typo size={20}>Enter Event {eventNo} Details :</Typo>
@@ -609,8 +601,15 @@ const EventForm = ({ setEvents, enquiry, enquiryId }) => {
           justifyContent: "space-between",
         }}
       >
-        <CustomButton text={"Save"} onPress={handleSubmit} />
-        <CustomButton text={"Add Another Event"} onPress={goToNextEvent} />
+        <CustomButton
+          loading={loading}
+          text={"Save"}
+          onPress={() => {
+            saveEvent();
+            setShouldSubmitEnquiry(true);
+          }}
+        />
+        <CustomButton text={"Add Another Event"} onPress={saveEvent} />
       </View>
     </View>
   );

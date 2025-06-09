@@ -11,6 +11,7 @@ import DrawerContent from "../../components/DrawerContent";
 import CustomButton from "../../components/CustomButton";
 import { useRouter } from "expo-router";
 import { formatDate } from "../../utils/helper";
+import AllEnquiries from "../../components/AllEnquiries";
 const Home = () => {
   const [showCal, setShowCal] = useState(true);
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -39,11 +40,7 @@ const Home = () => {
     </View>
   );
 
-  const secondRoute = () => (
-    <View>
-      <Text>All Enquiries</Text>
-    </View>
-  );
+  const secondRoute = () => <AllEnquiries />;
   const tabBar = ({ navigationState }) => (
     <View style={styles.calHeader}>
       {navigationState.routes.map((route, i) => (

@@ -36,7 +36,6 @@ const CustomMultiSelect = ({
   const [showAddBtn, setShowAddBtn] = useState(false);
   const [showAddMissingForm, setShowAddMissingForm] = useState(false);
   const [newItem, setNewItem] = useState("");
-  console.log(values);
   return (
     <View>
       <TouchableOpacity onPress={() => setModalVisible(true)}>
