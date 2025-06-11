@@ -12,6 +12,7 @@ import { getRoomsInfo, getUserInfo, loginUser } from "../../store/userSlice";
 import { Toast } from "toastify-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { getAllEnquiries } from "../../store/enquirySlice";
 const index = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -51,9 +52,10 @@ const index = () => {
         );
         if (data.status_code == 200) {
           await AsyncStorage.setItem("userId", data.user_id);
-          const res1 = await dispatch(getUserInfo(data.user_id));
+          const res1 = await dispatch(getUserInfo(data.user_id)).unwrap();
           const res2 = await dispatch(getRoomsInfo(data.user_id));
-          if (res1.meta.requestStatus == "fulfilled") {
+          await dispatch(getAllEnquiries(data.user_id));
+          if (res1.status_code == 200) {
             router.dismissAll();
             router.replace("/tabs");
             Toast.success("User logged in Successfully");

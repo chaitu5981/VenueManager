@@ -9,6 +9,13 @@ import store from "../store";
 import ToastManager from "toastify-react-native";
 import "expo-dev-client";
 import "expo-dev-menu";
+if (__DEV__) {
+  const devTools = require("react-devtools-core");
+  devTools.connectToDevTools({
+    host: "192.168.1.5",
+    port: 8097,
+  });
+}
 const theme = {
   ...DefaultTheme,
   colors: {

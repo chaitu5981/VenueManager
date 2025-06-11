@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch, useSelector } from "react-redux";
 import { getRoomsInfo, getUserInfo, setUser } from "../store/userSlice";
 import { fetchCountries } from "../store/locationSlice";
+import { getAllEnquiries } from "../store/enquirySlice";
 const carouselItems = [
   require("../assets/Intro1.png"),
   require("../assets/Intro2.png"),
@@ -56,18 +57,20 @@ const Index = () => {
     return userId;
   };
   const fetchUserInfo = async (userId) => {
-    const res1 = await dispatch(getUserInfo(userId));
+    const res1 = await dispatch(getUserInfo(userId)).unwrap();
     const res2 = await dispatch(getRoomsInfo(userId));
-    if (res1.meta.requestStatus == "fulfilled") {
+    if (res1.status_code == 200) {
       router.dismissAll();
       router.replace("/tabs");
     } else setShowSplash(false);
   };
+
   useEffect(() => {
     const checkUser = async () => {
       const userId = await fetchUserId();
       if (userId) {
         fetchUserInfo(userId);
+        await dispatch(getAllEnquiries(userId));
       } else
         setTimeout(() => {
           setShowSplash(false);

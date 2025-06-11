@@ -4,9 +4,10 @@ import {
   capitalize,
   formatDate,
   validateNumber,
+  validatePhone,
   validateText,
 } from "../utils/helper";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   accommodationTypes,
   bookingTypes,
@@ -35,7 +36,8 @@ const emptyDining = {
 const emptyAccommodation = {
   type: "",
   noOfRooms: "",
-  noOfPersons: "",
+  // noOfPersons: "",
+  persons: [],
   // rooms: {
   //   list: [],
   // },
@@ -59,9 +61,11 @@ const emptyErrors = {
   costPerPlate: "",
   noOfRooms: "",
   // rooms: [],
-  noOfPersons: "",
+  // noOfPersons: "",
   // personCost: "",
   // persons: [],
+  persons: [],
+  personsCount: "",
   services: [],
 };
 const emptyEvent = () => ({
@@ -75,8 +79,9 @@ const emptyEvent = () => ({
   checkInTime: "",
   checkOutTime: "",
   rent: "",
+  id: "",
 });
-const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
+const EventForm = ({ eventDates, submitEnquiry, loading, events, editing }) => {
   const [eventNo, setEventNo] = useState(1);
   const [event, setEvent] = useState(emptyEvent);
   const [dining, setDining] = useState(emptyDining);
@@ -84,6 +89,7 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
   const [services, setServices] = useState([]);
   const [errors, setErrors] = useState({ ...emptyErrors });
   const [shouldSubmitEnquiry, setShouldSubmitEnquiry] = useState(false);
+  const eventsToSend = useRef([]);
   const router = useRouter();
   const { subVenues } = useSelector((state) => state.user);
   const subVenuesData = subVenues.map((subVenue) => ({
@@ -100,6 +106,7 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
     );
     return selectedEventType.subEventTypes;
   };
+  // console.log(events);
   // const handleSelectAccommodation = (v) => {
   //   if (v == "perRoom") {
   //     setAccommodation({
@@ -140,6 +147,11 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
   //     });
   //   }
   // };
+  const getEventType = (subEventType) => {
+    return eventTypes.find((eventType) =>
+      eventType.subEventTypes.some((s) => s.value == subEventType)
+    ).value;
+  };
   const setBookingFor = (v) => {
     let newBookingFor;
     if (event.bookingFor.includes(v)) {
@@ -186,17 +198,13 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
       noOfPersonsErr = "";
     if (accommodation.type == "room")
       noOfRoomsErr = validateNumber(accommodation.noOfRooms, "No of Rooms");
-    if (accommodation.type == "person")
-      noOfPersonsErr = validateNumber(
-        accommodation.noOfPersons,
-        "No of Persons"
-      );
+
     let servicesErrFlag = false;
     let servicesErr = [];
     if (services.length > 0) {
       servicesErr = services.map((service, i) => {
         let serviceError = { name: "", serviceCost: "" };
-        if (!service.name.trim()) {
+        if (!service.name) {
           serviceError.name = "Enter valid Service Name";
           servicesErrFlag = true;
         }
@@ -207,7 +215,23 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
         return serviceError;
       });
     }
-    console.log(servicesErrFlag, "Services flag");
+    let personsErrFlag = false;
+    let personsErr = [];
+    let personsCountErr = "";
+    if (accommodation.type == "person") {
+      if (accommodation.persons.length == 0)
+        personsCountErr = "Add at least one Person";
+      else personsCountErr = "";
+    }
+    if (accommodation.persons.length > 0) {
+      personsErr = accommodation.persons.map((person, i) => {
+        let personErr = { name: "", phone: "" };
+        personErr.name = validateText(person.name, "Name");
+        personErr.phone = validatePhone(person.phone, "Phone No");
+        if (personErr.name || personErr.phone) personsErrFlag = true;
+        return personErr;
+      });
+    }
 
     const newErrors = {
       eventDate: eventDateErr,
@@ -223,7 +247,9 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
       costPerPlate: costPerPlateErr,
       noOfRooms: noOfRoomsErr,
       noOfPersons: noOfPersonsErr,
+      persons: personsErr,
       services: servicesErr,
+      personsCount: personsCountErr,
     };
     setErrors(newErrors);
     return (
@@ -240,67 +266,172 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
       !costPerPlateErr &&
       !noOfRoomsErr &&
       !noOfPersonsErr &&
-      !servicesErrFlag
+      !servicesErrFlag &&
+      !personsErrFlag
+      // !personsCountErr
     );
   };
 
   const saveEvent = () => {
     if (validateEvent()) {
-      console.log("Hi");
-      setEvents((prev) => [
-        ...prev,
-        {
-          eventDetails: {
-            event_date: event.eventDate,
-            event_name: event.eventName,
-            event_type: event.subEventType,
-            sub_venue_id: event.subVenue.sub_venue_id,
-            sub_venue: {
-              sub_venue_id: event.subVenue.sub_venue_id,
-              sub_venue_name: event.subVenue.sub_venue_name,
-              sub_venue_type: event.subVenue.sub_venue_type,
-              sub_venue_capacity: event.subVenue.sub_venue_capacity,
-            },
-            booking_for: event.bookingFor,
-            check_in: event.checkInTime,
-            check_out: event.checkOutTime,
-            no_of_guests: event.noOfGuests,
-            rent_charges: event.rent,
-          },
-          event_id: "",
-          accomodationDetails: {
-            charge_type: accommodation.type,
-            no_of_rooms: accommodation.noOfRooms,
-            no_of_persons: accommodation.noOfPersons,
-            rooms_data: [],
-            persons_data: [],
-          },
-          diningDetails: {
-            menu: dining.menu,
-            no_of_plates: dining.noOfPlates,
-            cost_per_plate: dining.costPerPlate,
-            total_menu_cost:
-              Number(dining.costPerPlate) * Number(dining.noOfPlates),
-          },
-          serviceDetails: services.map((s) => ({
-            service_name: s.name,
-            service_charge: s.serviceCost,
-          })),
+      const newEvent = {
+        eventDetails: {
+          event_date: event.eventDate,
+          event_name: event.eventName,
+          event_type: event.subEventType,
+          sub_venue_id: event.subVenue.sub_venue_id,
+          booking_for: event.bookingFor,
+          check_in: event.checkInTime,
+          check_out: event.checkOutTime,
+          no_of_guests: event.noOfGuests,
+          rent_charges: event.rent,
         },
-      ]);
+        event_id: event.id,
+        accomodationDetails: {
+          charge_type: accommodation.type,
+          no_of_rooms: accommodation.noOfRooms,
+          persons_data:
+            accommodation.persons.length > 0
+              ? accommodation.persons.map((p) => ({
+                  persons_name: p.name,
+                  person_phone: p.phone,
+                }))
+              : [],
+          rooms_data: [],
+        },
+        diningDetails: {
+          menu: dining.menu,
+          no_of_plates: dining.noOfPlates,
+          cost_per_plate: dining.costPerPlate,
+          total_menu_cost:
+            Number(dining.costPerPlate) * Number(dining.noOfPlates).toString(),
+        },
+        serviceDetails: services.map((s) => ({
+          service_name: s.name,
+          service_charge: s.serviceCost,
+        })),
+      };
+      if (editing) {
+        eventsToSend.current[eventNo - 1] = newEvent;
+      } else eventsToSend.current.push(newEvent);
+    }
+  };
+  const goToNextEvent = () => {
+    saveEvent();
+    if (!editing || eventNo >= events.length) {
       setEvent(emptyEvent);
       setDining(emptyDining);
       setAccommodation(emptyAccommodation);
       setServices([]);
-      setEventNo(eventNo + 1);
     }
+    setEventNo(eventNo + 1);
   };
+  // console.log(eventNo, "eventNo");
   useEffect(() => {
     if (shouldSubmitEnquiry) {
-      submitEnquiry();
+      submitEnquiry(eventsToSend.current);
       setShouldSubmitEnquiry(false);
     }
   }, [shouldSubmitEnquiry]);
+  useEffect(() => {
+    if (editing && eventNo <= events.length) {
+      const currEvent = events[eventNo - 1];
+      setEvent({
+        eventType: getEventType(currEvent.event_type),
+        subEventType: currEvent.event_type,
+        eventName: currEvent.event_name,
+        subVenue: subVenues.find(
+          (sv) => sv.sub_venue_id == currEvent.event_subvenue_id
+        ),
+        bookingFor: currEvent.event_booking_for,
+        noOfGuests: currEvent.event_no_of_guests,
+        eventDate: currEvent.event_date,
+        checkInTime: currEvent.event_check_in,
+        checkOutTime: currEvent.event_check_out,
+        rent: currEvent.event_rent_charges,
+        id: currEvent.id,
+      });
+      if (currEvent.dining_menu) {
+        setDining({
+          menu: currEvent.dining_menu,
+          noOfPlates: currEvent.dining_no_of_plates,
+          costPerPlate: currEvent.dining_cost_per_plate,
+          totalDiningCost: currEvent.dining_total_menu_cost,
+        });
+      }
+      setAccommodation({
+        type: currEvent.accomodation_charge_type,
+        noOfRooms: currEvent.accomodation_no_of_rooms,
+        persons:
+          currEvent.accomodation_persons_data.length > 0
+            ? currEvent.accomodation_persons_data.map((p, i) => ({
+                id: i + 1,
+                name: p.persons_name,
+                phone: p.person_phone,
+              }))
+            : [],
+      });
+      setServices(
+        currEvent.service_details.map((s, i) => ({
+          id: i + 1,
+          name: s.service_name,
+          serviceCost: s.service_charge.toString(),
+        }))
+      );
+      setErrors({
+        ...emptyErrors,
+        persons:
+          currEvent.accomodation_persons_data.length > 0
+            ? currEvent.accomodation_persons_data.map((p, i) => ({
+                id: i + 1,
+                name: "",
+                phone: "",
+              }))
+            : [],
+        services:
+          currEvent.service_details.length > 0
+            ? currEvent.service_details.map((s, i) => ({
+                id: i + 1,
+                name: "",
+                serviceCost: "",
+              }))
+            : [],
+      });
+    }
+  }, [editing, eventNo]);
+  useEffect(() => {
+    if (editing) {
+      eventsToSend.current = events.map((event) => ({
+        eventDetails: {
+          event_date: event.event_date,
+          event_name: event.event_name,
+          event_type: event.event_type,
+          sub_venue_id: event.event_subvenue_id,
+          booking_for: [...event.event_booking_for],
+          check_in: event.event_check_in,
+          check_out: event.event_check_out,
+          no_of_guests: event.event_no_of_guests,
+          rent_charges: event.event_rent_charges,
+        },
+        event_id: event.id,
+        accomodationDetails: {
+          charge_type: event.accomodation_charge_type,
+          no_of_rooms: event.accomodation_no_of_rooms,
+          persons_data: JSON.parse(
+            JSON.stringify(event.accomodation_persons_data)
+          ),
+          rooms_data: [],
+        },
+        diningDetails: {
+          menu: event.dining_menu,
+          no_of_plates: event.dining_no_of_plates,
+          cost_per_plate: event.dining_cost_per_plate,
+          total_menu_cost: event.dining_total_menu_cost,
+        },
+        serviceDetails: JSON.parse(JSON.stringify(event.service_details)),
+      }));
+    } else eventsToSend.current = [];
+  }, []);
   return (
     <View style={{ marginVertical: 20, gap: 15 }}>
       <Typo size={20}>Enter Event {eventNo} Details :</Typo>
@@ -429,7 +560,7 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
         label={"Check In Time"}
         value={
           event.checkInTime
-            ? event.checkInTime.toLocaleTimeString("en-in", {
+            ? new Date(event.checkInTime).toLocaleTimeString("en-in", {
                 hour: "2-digit",
                 minute: "2-digit",
               })
@@ -448,7 +579,7 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
         label={"Check Out Time"}
         value={
           event.checkOutTime
-            ? event.checkOutTime.toLocaleTimeString("en-in", {
+            ? new Date(event.checkOutTime).toLocaleTimeString("en-in", {
                 hour: "2-digit",
                 minute: "2-digit",
               })
@@ -545,7 +676,7 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
               setAccommodation({
                 ...accommodation,
                 noOfRooms: v,
-                noOfPersons: "",
+                persons: [],
               });
               setErrors({
                 ...errors,
@@ -559,31 +690,36 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
           />
         )}
         {accommodation.type === "person" && (
-          // <PersonsForm
-          //   accommodation={accommodation}
-          //   setAccommodation={setAccommodation}
-          //   errors={errors}
-          //   setErrors={setErrors}
-          // />
-          <CustomTextInput
-            label={"No Of Persons"}
-            value={accommodation.noOfPersons}
-            onChange={(v) => {
-              setAccommodation({
-                ...accommodation,
-                noOfPersons: v,
-                noOfRooms: "",
-              });
-              setErrors({
-                ...errors,
-                noOfPersons:
-                  accommodation.type == "person"
-                    ? validateNumber(v, "No Of Persons")
-                    : "",
-              });
-            }}
-            error={errors.noOfPersons}
+          <PersonsForm
+            accommodation={accommodation}
+            setAccommodation={setAccommodation}
+            errors={errors}
+            setErrors={setErrors}
           />
+          // <CustomTextInput
+          //   label={"No Of Persons"}
+          //   value={accommodation.noOfPersons}
+          //   onChange={(v) => {
+          //     setAccommodation({
+          //       ...accommodation,
+          //       noOfPersons: v,
+          //       noOfRooms: "",
+          //     });
+          //     setErrors({
+          //       ...errors,
+          //       noOfPersons:
+          //         accommodation.type == "person"
+          //           ? validateNumber(v, "No Of Persons")
+          //           : "",
+          //     });
+          //   }}
+          //   error={errors.noOfPersons}
+          // />
+        )}
+        {errors.personsCount && (
+          <HelperText visible={!!errors.personsCount} type="error">
+            {errors.personsCount}
+          </HelperText>
         )}
       </View>
       <View style={styles.optional}>
@@ -609,7 +745,14 @@ const EventForm = ({ setEvents, eventDates, submitEnquiry, loading }) => {
             setShouldSubmitEnquiry(true);
           }}
         />
-        <CustomButton text={"Add Another Event"} onPress={saveEvent} />
+        <CustomButton
+          text={
+            editing && eventNo < events.length
+              ? "Go To Next Event"
+              : "Add Another Event"
+          }
+          onPress={goToNextEvent}
+        />
       </View>
     </View>
   );

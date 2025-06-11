@@ -1,7 +1,32 @@
 export const formatDate = (date) => {
   return new Date(date).toISOString().split("T")[0];
 };
+export const fetchDate = (date) => {
+  return new Date(date).toLocaleDateString("en-in").replaceAll("/", "-");
+};
 
+export const fetchDate1 = (date) => {
+  return new Date(date).toLocaleDateString("en-in", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+export const fetchTime = (date) =>
+  new Date(date).toLocaleTimeString("en-in", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+export const fetchDateAndTime = (date) => {
+  return new Date(date).toLocaleString("en-in", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 export const capitalize = (s) => {
   return s[0].toUpperCase() + s.slice(1);
 };

@@ -22,6 +22,7 @@ const CustomSelect = ({
   error,
   loading = false,
   customStyle,
+  textStyle,
   addMissing = null,
   addMissingLoading,
 }) => {
@@ -51,6 +52,7 @@ const CustomSelect = ({
           optional={optional}
           error={error}
           customStyle={customStyle}
+          inputStyle={textStyle}
           value={value}
           editable={false}
           right={

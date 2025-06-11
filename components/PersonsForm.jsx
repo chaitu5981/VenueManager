@@ -3,72 +3,80 @@ import CustomTextInput from "./CustomTextInput";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import Typo from "./Typo";
+import { validatePhone, validateText } from "../utils/helper";
+import { useEffect } from "react";
 const PersonsForm = ({
   accommodation,
   setAccommodation,
   errors,
   setErrors,
 }) => {
-  const setPersonName = (v, index) => {
-    const newList = accommodation.persons.list.map((person, i) => {
-      if (i === index)
+  const addPerson = () => {
+    let n = accommodation.persons.length;
+    let id = n ? accommodation.persons[n - 1].id + 1 : 1;
+    setAccommodation({
+      ...accommodation,
+      persons: [...accommodation.persons, { id, name: "", phone: "" }],
+    });
+    setErrors({
+      ...errors,
+      persons: [...errors.persons, { id, name: "", phone: "" }],
+    });
+  };
+  const deletePerson = (index) => {
+    setAccommodation({
+      ...accommodation,
+      persons: accommodation.persons.filter((p) => p.id !== index),
+    });
+    const newErrors = errors.persons.filter((e) => e.id !== index);
+    setErrors({ ...errors, persons: newErrors });
+  };
+  const addPersonName = (v, id) => {
+    const newPersons = accommodation.persons.map((person) => {
+      if (person.id === id)
         return {
           ...person,
           name: v,
         };
       else return { ...person };
     });
-    setAccommodation({
-      ...accommodation,
-      persons: { ...accommodation.persons, list: newList },
+    const newErrors = errors.persons.map((error) => {
+      if (error.id == id)
+        return {
+          ...error,
+          name: validateText(v, "Name"),
+        };
+      else return { ...error };
     });
+    setAccommodation({ ...accommodation, persons: newPersons });
+    setErrors({ ...errors, persons: newErrors });
   };
-  const setPersonContact = (v, index) => {
-    const newList = accommodation.persons.list.map((person, i) => {
-      if (i === index)
+  const addPersonPhone = (v, index) => {
+    const newPersons = accommodation.persons.map((person, i) => {
+      if (person.id === index)
         return {
           ...person,
-          contactNo: v,
+          phone: v,
         };
       else return { ...person };
     });
-    setAccommodation({
-      ...accommodation,
-      persons: { ...accommodation.persons, list: newList },
+    const newErrors = errors.persons.map((error, i) => {
+      if (error.id == index)
+        return {
+          ...error,
+          phone: validatePhone(v, "Phone No"),
+        };
+      else return { ...error };
     });
+    setAccommodation({ ...accommodation, persons: newPersons });
+    setErrors({ ...errors, persons: newErrors });
   };
-  const addPerson = () => {
-    if (accommodation.persons.list.length < accommodation.persons.noOfPersons) {
-      setAccommodation({
-        ...accommodation,
-        persons: {
-          ...accommodation.persons,
-          list: [...accommodation.persons.list, { name: "", contactNo: "" }],
-        },
-      });
-      setErrors({
-        ...errors,
-        persons: [...errors.persons, { name: "", contactNo: "" }],
-      });
-    }
-  };
-  const deletePerson = (index) => {
-    if (accommodation.persons.list.length > accommodation.persons.noOfPersons) {
-      const newList = accommodation.persons.list.filter(
-        (room, i) => i !== index
-      );
-      const newErrors = errors.persons.filter((_, i) => i !== index);
-      setAccommodation({
-        ...accommodation,
-        persons: { ...accommodation.persons, list: newList },
-      });
-      setErrors({ ...errors, persons: newErrors });
-    }
-  };
+  useEffect(() => {
+    setAccommodation({ ...accommodation, noOfRooms: "" });
+  }, []);
   return (
     <View style={{ gap: 10 }}>
-      <CustomTextInput
+      {/* <CustomTextInput
         label={"No Of Persons"}
         value={accommodation.persons.noOfPersons.toString()}
         onChange={(v) => {
@@ -96,49 +104,45 @@ const PersonsForm = ({
           accommodation.persons.noOfPersons * accommodation.persons.personCost
         ).toString()}
         editable={false}
-      />
-      {accommodation.persons.list.map((person, i) => (
-        <View key={i} style={{ gap: 7 }}>
-          <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
-            <Typo style={{ flexGrow: 1 }}>Enter Person {i + 1} Details</Typo>
-            {i == 0 && (
-              <TouchableOpacity onPress={addPerson}>
-                <Ionicons name="add-circle" size={40} color="blue" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <View>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 10,
-                alignItems: "flex-start",
-              }}
-            >
-              <CustomTextInput
-                customStyle={{ flexGrow: 1 }}
-                label={"Name"}
-                value={person.name}
-                onChange={(v) => setPersonName(v, i)}
-                error={errors.persons[i].name}
-              />
-              <TouchableOpacity onPress={() => deletePerson(i)}>
-                <MaterialCommunityIcons
-                  name="delete-circle"
-                  size={40}
-                  color="red"
+      /> */}
+      <TouchableOpacity onPress={addPerson} style={{ alignSelf: "flex-end" }}>
+        <Ionicons name="add-circle" size={40} color="blue" />
+      </TouchableOpacity>
+      {accommodation.persons.length > 0 &&
+        accommodation.persons.map((person, i) => (
+          <View key={person.id} style={{ gap: 7 }}>
+            <View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "flex-start",
+                }}
+              >
+                <CustomTextInput
+                  customStyle={{ flexGrow: 1 }}
+                  label={"Name"}
+                  value={person.name}
+                  onChange={(v) => addPersonName(v, person.id)}
+                  error={errors.persons[i].name}
                 />
-              </TouchableOpacity>
+                <TouchableOpacity onPress={() => deletePerson(person.id)}>
+                  <MaterialCommunityIcons
+                    name="delete-circle"
+                    size={40}
+                    color="red"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
+            <CustomTextInput
+              label={"Contact No"}
+              value={person.phone}
+              onChange={(v) => addPersonPhone(v, person.id)}
+              error={errors.persons[i].phone}
+            />
           </View>
-          <CustomTextInput
-            label={"Contact No"}
-            value={person.contactNo}
-            onChange={(v) => setPersonContact(v, i)}
-            error={errors.persons[i].contactNo}
-          />
-        </View>
-      ))}
+        ))}
     </View>
   );
 };

@@ -175,10 +175,11 @@ const Step1 = () => {
         );
         if (data.status_code == 200) {
           Keyboard.dismiss();
-          Toast.success(data.message);
-          await dispatch(getUserInfo(user.user_id));
-          if (error) Toast.error(error);
-          router.back();
+          const res = await dispatch(getUserInfo(user.user_id)).unwrap();
+          if (res.status_code == 200) {
+            Toast.success(data.message);
+            router.back();
+          } else Toast.error(res.message);
         } else {
           Toast.error(data.message);
         }

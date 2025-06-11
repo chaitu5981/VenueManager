@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingTop: 20,
     paddingHorizontal: 20,
-    gap: 15,
+    gap: 10,
     width: "100%",
     backgroundColor: "white",
   },

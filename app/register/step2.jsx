@@ -186,10 +186,9 @@ const step2 = () => {
         );
         if (data.status_code == 200) {
           Toast.success(data.message);
-          const res = await dispatch(getUserInfo(user.user_id));
-          if (res.meta.requestStatus == "rejected")
-            Toast.error(res.action.payload);
-          else router.back();
+          const res = await dispatch(getUserInfo(user.user_id)).unwrap();
+          if (res.status_code == 200) router.back();
+          else Toast.error(res.message);
         } else Toast.error(data.message);
       }
     } catch (error) {

@@ -58,9 +58,9 @@ const AddOrEditSubVenue = ({
     else return "";
   };
   const loadUserInfo = async () => {
-    const res = await dispatch(getUserInfo(user_id));
-    if (res.meta.requestStatus == "fulfilled") handleClose();
-    else Toast.error(res.action.payload);
+    const res = await dispatch(getUserInfo(user_id)).unwrap();
+    if (res.status_code == 200) handleClose();
+    else Toast.error(res.message);
   };
   const handleSubmit = async () => {
     const nameErr = validateName(subVenue.name);

@@ -51,9 +51,9 @@ const AddOrEditRoom = ({ visible, setVisible, editing, initialData }) => {
     else return "";
   };
   const loadRoomsInfo = async () => {
-    const res = await dispatch(getRoomsInfo(user_id));
-    if (res.meta.requestStatus == "fulfilled") handleClose();
-    else Toast.error(res.action.payload);
+    const res = await dispatch(getRoomsInfo(user_id)).unwrap();
+    if (res.status_code == 200) handleClose();
+    else Toast.error(res.message);
   };
   const handleSubmit = async () => {
     const numberErr = validateNumber(room.number);

@@ -12,6 +12,8 @@ import CustomButton from "../../components/CustomButton";
 import { useRouter } from "expo-router";
 import { formatDate } from "../../utils/helper";
 import AllEnquiries from "../../components/AllEnquiries";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 const Home = () => {
   const [showCal, setShowCal] = useState(true);
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -41,6 +43,7 @@ const Home = () => {
   );
 
   const secondRoute = () => <AllEnquiries />;
+
   const tabBar = ({ navigationState }) => (
     <View style={styles.calHeader}>
       {navigationState.routes.map((route, i) => (
@@ -65,7 +68,7 @@ const Home = () => {
     </View>
   );
   return (
-    <View style={{ flexGrow: 1, backgroundColor: "white" }}>
+    <SafeAreaView style={{ flexGrow: 1, backgroundColor: "white" }}>
       <Drawer
         swipeMinVelocity={2000}
         drawerStyle={styles.sidebar}
@@ -83,7 +86,7 @@ const Home = () => {
           </TouchableOpacity>
           {/* <Header /> */}
         </View>
-        <View style={{ height: 470 }}>
+        <View style={{ flex: 1 }}>
           <TabView
             navigationState={{ index, routes }}
             onIndexChange={setIndex}
@@ -93,7 +96,7 @@ const Home = () => {
           />
         </View>
       </Drawer>
-    </View>
+    </SafeAreaView>
   );
 };
 export default Home;
