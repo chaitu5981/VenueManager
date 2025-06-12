@@ -54,7 +54,6 @@ const index = () => {
           await AsyncStorage.setItem("userId", data.user_id);
           const res1 = await dispatch(getUserInfo(data.user_id)).unwrap();
           const res2 = await dispatch(getRoomsInfo(data.user_id));
-          await dispatch(getAllEnquiries(data.user_id));
           if (res1.status_code == 200) {
             router.dismissAll();
             router.replace("/tabs");

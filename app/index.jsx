@@ -70,7 +70,6 @@ const Index = () => {
       const userId = await fetchUserId();
       if (userId) {
         fetchUserInfo(userId);
-        await dispatch(getAllEnquiries(userId));
       } else
         setTimeout(() => {
           setShowSplash(false);

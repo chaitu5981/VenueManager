@@ -1,38 +1,45 @@
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { TabView, SceneMap } from "react-native-tab-view";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Typo from "./Typo";
 import { fetchDate, fetchDate1, formatDate } from "../utils/helper";
 import { colors } from "../data/theme";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import CustomButton from "./CustomButton";
+import { getAllEnquiries } from "../store/enquirySlice";
 import { Toast } from "toastify-react-native";
+import Loader from "./Loader";
 const AllEnquiries = () => {
   const { enquiries, loading } = useSelector((state) => state.enquiry);
+  const {
+    user: { user_id: userId },
+  } = useSelector((state) => state.user);
   const [index, setIndex] = useState(0);
-  // const [currId, setCurrId] = useState(null);
+  const [page, setPage] = useState(1);
+
   const router = useRouter();
   const dispatch = useDispatch();
-  // console.log(enquiries[0]);
   const routes = [
-    { key: "first", title: "Enquiries" },
-    { key: "second", title: "Interested" },
-    { key: "third", title: "Not Interested" },
+    { key: "first", title: "All" },
+    { key: "second", title: "Lead" },
+    { key: "third", title: "Confirmed" },
+    { key: "fourth", title: "Not-interested" },
   ];
-  const getTotal = (i) => {
-    switch (i) {
-      case 0:
-        return enquiries.length;
-      case 1:
-        return 0;
-      case 2:
-        return 0;
-    }
+  const fetchEnquiries = async (page, status) => {
+    const res = await dispatch(
+      getAllEnquiries({ userId, page, noOfRows: 10, status })
+    ).unwrap();
+    if (res.status_code !== 200) Toast.error(res.message);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchEnquiries(1, "All");
+    }, [])
+  );
   const TabBar = ({ navigationState }) => (
     <View
       style={{
@@ -43,7 +50,10 @@ const AllEnquiries = () => {
     >
       {navigationState.routes.map((route, i) => (
         <TouchableOpacity
-          onPress={() => setIndex(i)}
+          onPress={() => {
+            setIndex(i);
+            fetchEnquiries(1, route.title);
+          }}
           key={i}
           style={[
             {
@@ -53,107 +63,127 @@ const AllEnquiries = () => {
           ]}
         >
           <View style={{ flexDirection: "row", gap: 2, alignItems: "center" }}>
-            <Typo size={12} color={index == i && "white"}>
+            <Typo size={14} color={index == i && "white"}>
               {route.title}{" "}
             </Typo>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: index == i ? "white" : colors.secondary },
-              ]}
-            >
-              <Typo size={12} color={index == i ? colors.secondary : "white"}>
-                {getTotal(i)}
-              </Typo>
-            </View>
           </View>
         </TouchableOpacity>
       ))}
     </View>
   );
-  const FirstRoute = () => (
-    <View style={{ flex: 1, marginVertical: 10 }}>
-      <FlatList
-        data={enquiries}
-        keyExtractor={(item) => item.appointment_id}
-        ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
-        renderItem={({ item, i }) => (
-          <View style={styles.card}>
-            <Typo weight={800} size={16} style={{ marginHorizontal: "auto" }}>
-              {fetchDate1(item.created_date)}
+  const EnquiriesList = () => {
+    if (loading) return <Loader size={30} />;
+    else
+      return (
+        <View style={{ flex: 1, marginVertical: 10 }}>
+          {enquiries.length == 0 ? (
+            <Typo size={20} position={"center"}>
+              No Data
             </Typo>
-            <View style={styles.line} />
-            <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
-            >
-              <Typo weight={800}>{item.name}</Typo>
-              <Typo>
-                {" "}
-                <FontAwesome name="phone" size={15} color="black" />{" "}
-                {item.phone_no}
-              </Typo>
-            </View>
-            <View style={styles.content}>
-              <Typo>
-                <MaterialCommunityIcons
-                  name="list-status"
-                  size={12}
-                  color="black"
-                />{" "}
-                {item.appointment_status}
-              </Typo>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 5,
-                  alignItems: "flex-start",
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="calendar-month-outline"
-                  size={18}
-                  color="black"
-                />
-                <View>
-                  {item.appointment_date.map((d, i) => (
-                    <Typo key={i}>{fetchDate(d)}</Typo>
-                  ))}
+          ) : (
+            <FlatList
+              data={enquiries}
+              keyExtractor={(item) => item.appointment_id}
+              ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+              renderItem={({ item, i }) => (
+                <View style={styles.card}>
+                  <Typo
+                    weight={800}
+                    size={16}
+                    style={{ marginHorizontal: "auto" }}
+                  >
+                    {fetchDate1(item.created_date)}
+                  </Typo>
+                  <View style={styles.line} />
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Typo weight={800}>{item.name}</Typo>
+                    <Typo>
+                      {" "}
+                      <FontAwesome name="phone" size={15} color="black" />{" "}
+                      {item.phone_no}
+                    </Typo>
+                  </View>
+                  <View style={styles.content}>
+                    <View>
+                      <Typo>{item.appointment_id}</Typo>
+                      <Typo size={16}>
+                        <MaterialCommunityIcons
+                          name="list-status"
+                          size={12}
+                          color="black"
+                        />{" "}
+                        {item.appointment_status}
+                      </Typo>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 5,
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <MaterialCommunityIcons
+                        name="calendar-month-outline"
+                        size={18}
+                        color="black"
+                      />
+                      <View>
+                        {item.appointment_date.map((d, i) => (
+                          <Typo key={i}>{fetchDate(d)}</Typo>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                  <CustomButton
+                    text={"View Details"}
+                    onPress={() => {
+                      router.push({
+                        pathname: "/enquiry-details",
+                        params: {
+                          enquiryId: item.appointment_id,
+                        },
+                      });
+                    }}
+                    customStyle={{
+                      height: 40,
+                      borderRadius: 10,
+                      paddingVertical: 0,
+                    }}
+                    labelSize={15}
+                  />
                 </View>
-              </View>
-            </View>
-            <CustomButton
-              text={"View Details"}
-              onPress={() => {
-                router.push({
-                  pathname: "/enquiry-details",
-                  params: {
-                    enquiryId: item.appointment_id,
-                  },
-                });
-              }}
-              customStyle={{ height: 40, borderRadius: 10, paddingVertical: 0 }}
-              labelSize={15}
+              )}
             />
-          </View>
-        )}
-      />
-    </View>
-  );
+          )}
+        </View>
+      );
+  };
 
   const SecondRoute = () => (
     <View>
-      <Typo>Interested </Typo>
+      <Typo>Lead </Typo>
     </View>
   );
   const ThirdRoute = () => (
     <View>
-      <Typo>Not Interested</Typo>
+      <Typo>Confirmed</Typo>
     </View>
   );
+  const FourthRoute = () => {
+    <View>
+      <Typo>Not Interested</Typo>
+    </View>;
+  };
   const renderScene = SceneMap({
-    first: FirstRoute,
-    second: SecondRoute,
-    third: ThirdRoute,
+    first: EnquiriesList,
+    second: EnquiriesList,
+    third: EnquiriesList,
+    fourth: EnquiriesList,
   });
   return (
     <View style={{ flex: 1, gap: 20, paddingHorizontal: 15 }}>
@@ -177,15 +207,8 @@ const styles = StyleSheet.create({
   tab: {
     borderRadius: 10,
     padding: 10,
-    width: "31%",
   },
-  badge: {
-    width: 25,
-    height: 25,
-    borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   card: {
     backgroundColor: colors.lightgray,
     borderRadius: 20,

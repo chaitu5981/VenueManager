@@ -166,6 +166,7 @@ const EventForm = ({ eventDates, submitEnquiry, loading, events, editing }) => {
       setErrors({ ...errors, bookingFor: "Select Booking For" });
     else setErrors({ ...errors, bookingFor: "" });
   };
+  console.log(errors.services);
   const validateEvent = () => {
     const {
       eventDate,
@@ -314,17 +315,19 @@ const EventForm = ({ eventDates, submitEnquiry, loading, events, editing }) => {
       if (editing) {
         eventsToSend.current[eventNo - 1] = newEvent;
       } else eventsToSend.current.push(newEvent);
+      return true;
     }
   };
   const goToNextEvent = () => {
-    saveEvent();
-    if (!editing || eventNo >= events.length) {
-      setEvent(emptyEvent);
-      setDining(emptyDining);
-      setAccommodation(emptyAccommodation);
-      setServices([]);
+    if (saveEvent()) {
+      if (!editing || eventNo >= events.length) {
+        setEvent(emptyEvent);
+        setDining(emptyDining);
+        setAccommodation(emptyAccommodation);
+        setServices([]);
+      }
+      setEventNo(eventNo + 1);
     }
-    setEventNo(eventNo + 1);
   };
   // console.log(eventNo, "eventNo");
   useEffect(() => {
@@ -741,8 +744,7 @@ const EventForm = ({ eventDates, submitEnquiry, loading, events, editing }) => {
           loading={loading}
           text={"Save"}
           onPress={() => {
-            saveEvent();
-            setShouldSubmitEnquiry(true);
+            if (saveEvent()) setShouldSubmitEnquiry(true);
           }}
         />
         <CustomButton

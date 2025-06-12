@@ -14,7 +14,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Calendar } from "react-native-calendars";
 import { ScrollView } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
-import { formatDate } from "../utils/helper";
+import { fetchDate, fetchDate1, formatDate } from "../utils/helper";
 const DatePicker = ({ eventDates, onChange }) => {
   const selectedDates = eventDates.map((d) => formatDate(d));
   const [markedDates, setMarkedDates] = useState(selectedDates);
@@ -32,7 +32,7 @@ const DatePicker = ({ eventDates, onChange }) => {
     setMarkedDates(newDates);
   };
   const getSelectedDates = () => {
-    return eventDates.join(",");
+    return eventDates.map((d) => fetchDate(d)).join(",");
   };
   const getMarkedDates = () => {
     let marked = {};
@@ -67,6 +67,7 @@ const DatePicker = ({ eventDates, onChange }) => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <Calendar
+                current={markedDates[0]}
                 onDayPress={(day) => addMarkedDate(day)}
                 markedDates={getMarkedDates()}
               />

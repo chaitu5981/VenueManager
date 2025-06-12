@@ -1,12 +1,12 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Header from "../../components/Header";
 import CustomTextInput from "../../components/CustomTextInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TextInput, HelperText } from "react-native-paper";
 import DatePicker from "../../components/DatePicker";
 import CustomButton from "../../components/CustomButton";
 import ScreenWrapper from "../../components/ScreenWrapper";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   formatDate,
   validateAddress,
@@ -15,35 +15,41 @@ import {
   validatePhone,
 } from "../../utils/helper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CustomSelect from "../../components/CustomSelect";
 import axios from "axios";
 import { Toast } from "toastify-react-native";
+import { getEnquiryDetails } from "../../store/enquirySlice";
 const emptyErrors = {
   name: "",
   phone: "",
   email: "",
   eventDates: "",
-  address: "",
   notes: "",
 };
 
 const AddEnquiry = () => {
+  const {
+    enquiryId = null,
+    editing = false,
+    userId,
+    enquiry: inputEnquiry,
+  } = useLocalSearchParams();
+  const { loading: enquiryLoading } = useSelector((state) => state.enquiry);
+  const [loading, setLoading] = useState(false);
   const [enquiry, setEnquiry] = useState({
     name: "",
     code: "91",
     phone: "",
     email: "",
-    address: "",
     notes: "",
     eventDates: [],
   });
   const [errors, setErrors] = useState(emptyErrors);
   const { user } = useSelector((state) => state.user);
   const locationState = useSelector((state) => state.location);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+  const dispatch = useDispatch();
   const validateDates = (dates) => {
     if (dates.length === 0) return "Enter at least one date";
     else return "";
@@ -52,63 +58,78 @@ const AddEnquiry = () => {
     if (notes.length < 5) return "Enter at least 5 characters";
     else return "";
   };
-
   const handleSubmit = async () => {
-    const { name, phone, email, eventDates, address, notes, code } = enquiry;
+    const { name, phone, email, eventDates, notes, code } = enquiry;
     const nameErr = validateName(name);
     const phoneErr = validatePhone(phone);
     const emailErr = validateEmail(email);
     const eventDatesErr = validateDates(eventDates);
-    const addressErr = validateAddress(address);
     const notesErr = validateNotes(notes);
     const newErrors = {
       name: nameErr,
       phone: phoneErr,
       email: emailErr,
       eventDates: eventDatesErr,
-      address: addressErr,
       notes: notesErr,
     };
     setErrors(newErrors);
-    if (
-      !nameErr &&
-      !phoneErr &&
-      !emailErr &&
-      !eventDatesErr &&
-      !addressErr &&
-      !notesErr
-    ) {
+    if (!nameErr && !phoneErr && !emailErr && !eventDatesErr && !notesErr) {
       try {
         setLoading(true);
+        let payload = {
+          user_id: userId || user.user_id,
+          name,
+          country_code: code,
+          phone_no: phone,
+          email,
+          appointment_date: eventDates,
+          notes,
+          enquiry_id: enquiryId || "",
+        };
+        if (editing)
+          payload = {
+            ...payload,
+            appointment_id: enquiryId,
+          };
         const { data } = await axios.post(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/enquiry/addEnquiry`,
-          {
-            user_id: user.user_id,
-            name,
-            country_code: code,
-            phone_no: phone,
-            email,
-            appointment_date: eventDates,
-            notes,
-          }
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/enquiry/${
+            editing ? "update" : "add"
+          }Enquiry`,
+          payload
         );
         if (data.status_code == 200) {
           Toast.success(data.message);
-          router.replace({
-            pathname: "/add-enquiry/add-events",
-            params: {
-              enquiryId: data.enquiry_id,
-            },
-          });
+          const res = await dispatch(
+            getEnquiryDetails(data.enquiry_id)
+          ).unwrap();
+          if (res.status_code == 200)
+            if (!editing)
+              router.replace({
+                pathname: "/add-enquiry/add-events",
+                params: {
+                  enquiryId: data.enquiry_id,
+                },
+              });
+            else router.back();
         } else Toast.error(data.message);
       } catch (error) {
         console.log(error);
         Toast.error("Internal Error");
+      } finally {
+        setLoading(false);
       }
     }
   };
+
+  useEffect(() => {
+    if (editing) {
+      setEnquiry(JSON.parse(inputEnquiry));
+    }
+  }, [editing, enquiryId]);
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <Header label={`${editing ? "Update" : "Add"} Enquiry`} showBackBtn />
+
       <ScreenWrapper>
         <CustomTextInput
           label={"Enquiry Person Name"}
@@ -160,7 +181,10 @@ const AddEnquiry = () => {
           <DatePicker
             eventDates={enquiry.eventDates}
             onChange={(dates) => {
-              setEnquiry({ ...enquiry, eventDates: dates });
+              setEnquiry({
+                ...enquiry,
+                eventDates: dates.map((d) => new Date(d)),
+              });
               setErrors({ ...errors, eventDates: validateDates(dates) });
             }}
           />
@@ -170,7 +194,7 @@ const AddEnquiry = () => {
             </HelperText>
           )}
         </View>
-        <CustomTextInput
+        {/* <CustomTextInput
           label={"Address"}
           value={enquiry.address}
           error={errors.address}
@@ -178,7 +202,7 @@ const AddEnquiry = () => {
             setEnquiry({ ...enquiry, address: v });
             setErrors({ ...errors, address: validateAddress(v) });
           }}
-        />
+        /> */}
         <CustomTextInput
           multiline
           label={"Notes"}
@@ -190,7 +214,11 @@ const AddEnquiry = () => {
             setErrors({ ...errors, notes: validateNotes(v) });
           }}
         />
-        <CustomButton text="NEXT" onPress={handleSubmit} loading={loading} />
+        <CustomButton
+          text="Submit"
+          onPress={handleSubmit}
+          loading={loading || enquiryLoading}
+        />
       </ScreenWrapper>
     </SafeAreaView>
   );

@@ -7,7 +7,6 @@ const AddEnquiryLayout = () => {
   const [eventDates, setEventDates] = useState([]);
   return (
     <>
-      <Header label={"Add Enquiry"} showBackBtn />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="add-events" />

@@ -16,8 +16,8 @@ import {
   fetchTime,
 } from "../../utils/helper";
 import CustomSelect from "../../components/CustomSelect";
-import { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { getEnquiryDetails } from "../../store/enquirySlice";
 import { Toast } from "toastify-react-native";
 import Loader from "../../components/Loader";
@@ -50,13 +50,16 @@ const EnquiryDetails = () => {
   useEffect(() => {
     if (event_info?.length > 0) setEventId(event_info[0].id);
   }, [event_info]);
-  useEffect(() => {
-    const fetchEnquiryDetails = async () => {
-      const res = await dispatch(getEnquiryDetails(enquiryId)).unwrap();
-      if (res.status_code != 200) Toast.error(res.message);
-    };
-    fetchEnquiryDetails();
-  }, [enquiryId]);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchEnquiryDetails = async () => {
+        const res = await dispatch(getEnquiryDetails(enquiryId)).unwrap();
+        if (res.status_code != 200) Toast.error(res.message);
+      };
+      fetchEnquiryDetails();
+    }, [enquiryId])
+  );
+
   if (loading) return <Loader size={30} />;
   else
     return (
@@ -194,7 +197,9 @@ const EnquiryDetails = () => {
                   <View style={{ gap: 5 }}>
                     <Typo>Booking For</Typo>
                     <Typo weight={800}>
-                      {event.event_booking_for.join(",")}
+                      {event.event_booking_for
+                        .filter((b) => b != "WholeDay")
+                        .join(",")}
                     </Typo>
                   </View>
                   <View style={{ gap: 5 }}>

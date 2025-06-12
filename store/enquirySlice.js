@@ -10,10 +10,10 @@ const initialState = {
 
 export const getAllEnquiries = createAsyncThunk(
   "enquiry/getAllEnquiries",
-  async (userId, thunkApi) => {
+  async ({ userId, noOfRows, page, status }, thunkApi) => {
     try {
       const { data } = await axios(
-        `https://vm-backend-6fd25b5f6201.herokuapp.com/v1/enquiry/getAllEnquiry?user_id=${userId}`
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/enquiry/getAllEnquiry?user_id=${userId}&page=${page}&no_of_rows=${noOfRows}&status=${status}`
       );
       return data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const getEnquiryDetails = createAsyncThunk(
   async (enquiryId, thunkApi) => {
     try {
       const { data } = await axios(
-        `https://vm-backend-6fd25b5f6201.herokuapp.com/v1/enquiry/getEnquiryDetails?enquiry_id=${enquiryId}`
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1/enquiry/getEnquiryDetails?enquiry_id=${enquiryId}`
       );
       return data;
     } catch (error) {
