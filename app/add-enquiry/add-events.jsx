@@ -82,12 +82,7 @@ const AddEvents = () => {
         req
       );
       if (data.status_code == 200) {
-        const res = await dispatch(getAllEnquiries(userId)).unwrap();
-        if (res.status_code == 200) {
-          Toast.success(data.message);
-
-          router.back();
-        } else console.log(res);
+        router.back();
       } else Toast.error(data.message);
     } catch (error) {
       console.log(error);

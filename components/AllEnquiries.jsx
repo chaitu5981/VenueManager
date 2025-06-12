@@ -1,4 +1,10 @@
-import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { TabView, SceneMap } from "react-native-tab-view";
 import { useCallback, useState } from "react";
@@ -12,14 +18,17 @@ import CustomButton from "./CustomButton";
 import { getAllEnquiries } from "../store/enquirySlice";
 import { Toast } from "toastify-react-native";
 import Loader from "./Loader";
+
 const AllEnquiries = () => {
-  const { enquiries, loading } = useSelector((state) => state.enquiry);
+  const { enquiries, loading, totalCount } = useSelector(
+    (state) => state.enquiry
+  );
   const {
     user: { user_id: userId },
   } = useSelector((state) => state.user);
   const [index, setIndex] = useState(0);
   const [page, setPage] = useState(1);
-
+  const [type, setType] = useState("All");
   const router = useRouter();
   const dispatch = useDispatch();
   const routes = [
@@ -30,16 +39,22 @@ const AllEnquiries = () => {
   ];
   const fetchEnquiries = async (page, status) => {
     const res = await dispatch(
-      getAllEnquiries({ userId, page, noOfRows: 10, status })
+      getAllEnquiries({ userId, page: page - 1, noOfRows: 10, status })
     ).unwrap();
     if (res.status_code !== 200) Toast.error(res.message);
   };
 
   useFocusEffect(
     useCallback(() => {
-      fetchEnquiries(1, "All");
-    }, [])
+      fetchEnquiries(page, type);
+    }, [page, type])
   );
+  const goToPrevPage = () => {
+    if (page > 1) setPage(page - 1);
+  };
+  const goToNextPage = () => {
+    if (page < Math.ceil(totalCount / 10)) setPage(page + 1);
+  };
   const TabBar = ({ navigationState }) => (
     <View
       style={{
@@ -52,7 +67,8 @@ const AllEnquiries = () => {
         <TouchableOpacity
           onPress={() => {
             setIndex(i);
-            fetchEnquiries(1, route.title);
+            setPage(1);
+            setType(route.title);
           }}
           key={i}
           style={[
@@ -81,104 +97,121 @@ const AllEnquiries = () => {
               No Data
             </Typo>
           ) : (
-            <FlatList
-              data={enquiries}
-              keyExtractor={(item) => item.appointment_id}
-              ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
-              renderItem={({ item, i }) => (
-                <View style={styles.card}>
-                  <Typo
-                    weight={800}
-                    size={16}
-                    style={{ marginHorizontal: "auto" }}
-                  >
-                    {fetchDate1(item.created_date)}
-                  </Typo>
-                  <View style={styles.line} />
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Typo weight={800}>{item.name}</Typo>
-                    <Typo>
-                      {" "}
-                      <FontAwesome name="phone" size={15} color="black" />{" "}
-                      {item.phone_no}
+            <ScrollView>
+              <FlatList
+                scrollEnabled={false}
+                data={enquiries}
+                keyExtractor={(item) => item.appointment_id}
+                ItemSeparatorComponent={() => <View style={{ height: 15 }} />}
+                renderItem={({ item, i }) => (
+                  <View style={styles.card}>
+                    <Typo
+                      weight={800}
+                      size={16}
+                      style={{ marginHorizontal: "auto" }}
+                    >
+                      {fetchDate1(item.created_date)}
                     </Typo>
-                  </View>
-                  <View style={styles.content}>
-                    <View>
-                      <Typo>{item.appointment_id}</Typo>
-                      <Typo size={16}>
-                        <MaterialCommunityIcons
-                          name="list-status"
-                          size={12}
-                          color="black"
-                        />{" "}
-                        {item.appointment_status}
-                      </Typo>
-                    </View>
+                    <View style={styles.line} />
                     <View
                       style={{
                         flexDirection: "row",
-                        gap: 5,
-                        alignItems: "flex-start",
+                        justifyContent: "space-between",
                       }}
                     >
-                      <MaterialCommunityIcons
-                        name="calendar-month-outline"
-                        size={18}
-                        color="black"
-                      />
+                      <Typo weight={800}>{item.name}</Typo>
+                      <Typo>
+                        {" "}
+                        <FontAwesome
+                          name="phone"
+                          size={15}
+                          color="black"
+                        />{" "}
+                        {item.phone_no}
+                      </Typo>
+                    </View>
+                    <View style={styles.content}>
                       <View>
-                        {item.appointment_date.map((d, i) => (
-                          <Typo key={i}>{fetchDate(d)}</Typo>
-                        ))}
+                        <Typo>{item.appointment_id}</Typo>
+                        <Typo size={16}>
+                          <MaterialCommunityIcons
+                            name="list-status"
+                            size={12}
+                            color="black"
+                          />{" "}
+                          {item.appointment_status}
+                        </Typo>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 5,
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <MaterialCommunityIcons
+                          name="calendar-month-outline"
+                          size={18}
+                          color="black"
+                        />
+                        <View>
+                          {item.appointment_date.map((d, i) => (
+                            <Typo key={i}>{fetchDate(d)}</Typo>
+                          ))}
+                        </View>
                       </View>
                     </View>
+                    <CustomButton
+                      text={"View Details"}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/enquiry-details",
+                          params: {
+                            enquiryId: item.appointment_id,
+                          },
+                        });
+                      }}
+                      customStyle={{
+                        height: 40,
+                        borderRadius: 10,
+                        paddingVertical: 0,
+                      }}
+                      labelSize={15}
+                    />
                   </View>
-                  <CustomButton
-                    text={"View Details"}
-                    onPress={() => {
-                      router.push({
-                        pathname: "/enquiry-details",
-                        params: {
-                          enquiryId: item.appointment_id,
-                        },
-                      });
-                    }}
-                    customStyle={{
-                      height: 40,
-                      borderRadius: 10,
-                      paddingVertical: 0,
-                    }}
-                    labelSize={15}
+                )}
+              />
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <TouchableOpacity onPress={goToPrevPage}>
+                  <MaterialCommunityIcons
+                    name="arrow-left-drop-circle-outline"
+                    size={35}
+                    color="black"
                   />
-                </View>
-              )}
-            />
+                </TouchableOpacity>
+                <Typo size={20} weight={800}>
+                  {(page - 1) * 10 + 1}-{(page - 1) * 10 + enquiries.length}
+                </Typo>
+                <TouchableOpacity onPress={goToNextPage}>
+                  <MaterialCommunityIcons
+                    name="arrow-right-drop-circle-outline"
+                    size={35}
+                    color="black"
+                  />
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           )}
         </View>
       );
   };
 
-  const SecondRoute = () => (
-    <View>
-      <Typo>Lead </Typo>
-    </View>
-  );
-  const ThirdRoute = () => (
-    <View>
-      <Typo>Confirmed</Typo>
-    </View>
-  );
-  const FourthRoute = () => {
-    <View>
-      <Typo>Not Interested</Typo>
-    </View>;
-  };
   const renderScene = SceneMap({
     first: EnquiriesList,
     second: EnquiriesList,

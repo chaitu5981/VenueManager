@@ -5,6 +5,7 @@ const initialState = {
   loading: false,
   error: null,
   enquiries: [],
+  totalCount: 0,
   currEnquiry: null,
 };
 
@@ -45,11 +46,13 @@ const enquirySlice = createSlice({
       .addCase(getAllEnquiries.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.enquiries = [];
       })
       .addCase(getAllEnquiries.fulfilled, (state, { payload }) => {
         state.loading = false;
         if (payload.status_code == 200) {
           state.enquiries = payload.data;
+          state.totalCount = payload.totalCount;
         } else {
           state.error = payload.message;
           state.enquiries = [];
