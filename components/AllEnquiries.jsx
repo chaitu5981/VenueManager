@@ -6,7 +6,6 @@ import {
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { TabView, SceneMap } from "react-native-tab-view";
 import { useCallback, useState } from "react";
 import Typo from "./Typo";
 import { fetchDate, fetchDate1, formatDate } from "../utils/helper";
@@ -18,7 +17,7 @@ import CustomButton from "./CustomButton";
 import { getAllEnquiries } from "../store/enquirySlice";
 import { Toast } from "toastify-react-native";
 import Loader from "./Loader";
-
+const types = ["All", "Lead", "Confirmed", "Not-interested"];
 const AllEnquiries = () => {
   const { enquiries, loading, totalCount } = useSelector(
     (state) => state.enquiry
@@ -31,12 +30,7 @@ const AllEnquiries = () => {
   const [type, setType] = useState("All");
   const router = useRouter();
   const dispatch = useDispatch();
-  const routes = [
-    { key: "first", title: "All" },
-    { key: "second", title: "Lead" },
-    { key: "third", title: "Confirmed" },
-    { key: "fourth", title: "Not-interested" },
-  ];
+
   const fetchEnquiries = async (page, status) => {
     const res = await dispatch(
       getAllEnquiries({ userId, page: page - 1, noOfRows: 10, status })
@@ -55,7 +49,7 @@ const AllEnquiries = () => {
   const goToNextPage = () => {
     if (page < Math.ceil(totalCount / 10)) setPage(page + 1);
   };
-  const TabBar = ({ navigationState }) => (
+  const TabBar = () => (
     <View
       style={{
         flexDirection: "row",
@@ -63,12 +57,12 @@ const AllEnquiries = () => {
         gap: 5,
       }}
     >
-      {navigationState.routes.map((route, i) => (
+      {types.map((type, i) => (
         <TouchableOpacity
           onPress={() => {
             setIndex(i);
             setPage(1);
-            setType(route.title);
+            setType(type);
           }}
           key={i}
           style={[
@@ -80,7 +74,7 @@ const AllEnquiries = () => {
         >
           <View style={{ flexDirection: "row", gap: 2, alignItems: "center" }}>
             <Typo size={14} color={index == i && "white"}>
-              {route.title}{" "}
+              {type}
             </Typo>
           </View>
         </TouchableOpacity>
@@ -191,7 +185,7 @@ const AllEnquiries = () => {
                 <TouchableOpacity onPress={goToPrevPage}>
                   <MaterialCommunityIcons
                     name="arrow-left-drop-circle-outline"
-                    size={35}
+                    size={45}
                     color="black"
                   />
                 </TouchableOpacity>
@@ -201,7 +195,7 @@ const AllEnquiries = () => {
                 <TouchableOpacity onPress={goToNextPage}>
                   <MaterialCommunityIcons
                     name="arrow-right-drop-circle-outline"
-                    size={35}
+                    size={45}
                     color="black"
                   />
                 </TouchableOpacity>
@@ -212,25 +206,13 @@ const AllEnquiries = () => {
       );
   };
 
-  const renderScene = SceneMap({
-    first: EnquiriesList,
-    second: EnquiriesList,
-    third: EnquiriesList,
-    fourth: EnquiriesList,
-  });
   return (
-    <View style={{ flex: 1, gap: 20, paddingHorizontal: 15 }}>
+    <View style={{ flex: 1, gap: 20 }}>
       <Typo size={20} weight={800}>
         All Enquiries
       </Typo>
-      <TabView
-        navigationState={{ index, routes }}
-        onIndexChange={setIndex}
-        swipeEnabled={false}
-        renderScene={renderScene}
-        initialLayout={{ width: "100%" }}
-        renderTabBar={TabBar}
-      />
+      <TabBar />
+      <EnquiriesList />
     </View>
   );
 };

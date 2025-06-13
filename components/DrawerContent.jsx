@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout } from "../store/userSlice";
-import { useState } from "react";
+import { useState, memo } from "react";
 const DrawerContent = ({ hideDrawer }) => {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -108,7 +108,7 @@ const DrawerContent = ({ hideDrawer }) => {
   ];
   const { user } = useSelector((state) => state.user);
   return (
-    <View style={{ flex: 1, padding: 10, gap: 20 }}>
+    <View style={{ flex: 1, gap: 20, paddingHorizontal: 10 }}>
       <View style={styles.profileContainer}>
         <Image
           source={require("../assets/profile.jpg")}
@@ -128,14 +128,9 @@ const DrawerContent = ({ hideDrawer }) => {
           <Typo color={"white"}>UPGRADE NOW</Typo>
         </View>
       </View>
-      <FlatList
-        style={{ flex: 1 }}
-        scrollEnabled
-        data={menuItems}
-        keyExtractor={(item) => item.label}
-        ItemSeparatorComponent={() => <View style={{ height: 30 }} />}
-        renderItem={({ item }) => (
-          <>
+      <ScrollView contentContainerStyle={{ gap: 20 }} nestedScrollEnabled>
+        {menuItems.map((item) => (
+          <View key={item.label}>
             <TouchableOpacity
               onPress={() => {
                 item.onPress();
@@ -174,37 +169,36 @@ const DrawerContent = ({ hideDrawer }) => {
               )}
             </TouchableOpacity>
             {showSubMenu && item.isSubMenu && (
-              <View style={styles.subMenu}>
-                <FlatList
-                  data={item.subMenu}
-                  keyExtractor={(item) => item.label}
-                  ItemSeparatorComponent={() => <View style={{ height: 30 }} />}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => {
-                        item.onPress();
-                        hideDrawer();
-                      }}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <MaterialCommunityIcons
-                        name={item.icon}
-                        size={24}
-                        color="black"
-                      />
-                      <Typo weight={800}>{item.label}</Typo>
-                    </TouchableOpacity>
-                  )}
-                />
-              </View>
+              <ScrollView
+                contentContainerStyle={styles.subMenu}
+                nestedScrollEnabled
+              >
+                {item.subMenu.map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
+                    onPress={() => {
+                      item.onPress();
+                      hideDrawer();
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={item.icon}
+                      size={24}
+                      color="black"
+                    />
+                    <Typo weight={800}>{item.label}</Typo>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             )}
-          </>
-        )}
-      />
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -213,7 +207,7 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    // padding: 10,
     gap: 10,
     justifyContent: "space-between",
     borderBottomWidth: 2,
@@ -237,5 +231,6 @@ const styles = StyleSheet.create({
   subMenu: {
     paddingHorizontal: 20,
     paddingTop: 20,
+    gap: 20,
   },
 });

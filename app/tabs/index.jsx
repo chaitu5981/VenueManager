@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { formatDate } from "../../utils/helper";
 import AllEnquiries from "../../components/AllEnquiries";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ScreenWrapper from "../../components/ScreenWrapper";
 
 const Home = () => {
   const [showCal, setShowCal] = useState(true);
@@ -27,7 +28,7 @@ const Home = () => {
     { key: "second", title: "All Enquiries" },
   ];
   const firstRoute = () => (
-    <View style={{ gap: 20, paddingHorizontal: 10 }}>
+    <View style={{ gap: 20 }}>
       <Calendar
         current={formatDate(selectedDate)}
         onDayPress={(day) => setSelectedDate(new Date(day.dateString))}
@@ -68,7 +69,7 @@ const Home = () => {
     </View>
   );
   return (
-    <SafeAreaView style={{ flexGrow: 1, backgroundColor: "white" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <Drawer
         swipeMinVelocity={2000}
         drawerStyle={styles.sidebar}
@@ -80,21 +81,23 @@ const Home = () => {
           <DrawerContent hideDrawer={() => setOpenSidebar(false)} />
         )}
       >
-        <View style={{ flexDirection: "row", gap: 30, padding: 20 }}>
+        <View style={{ flexDirection: "row", gap: 30 }}>
           <TouchableOpacity onPress={() => setOpenSidebar(true)}>
             <Ionicons name="menu" size={35} color="black" />
           </TouchableOpacity>
           {/* <Header /> */}
         </View>
-        <View style={{ flex: 1 }}>
-          <TabView
-            navigationState={{ index, routes }}
-            onIndexChange={setIndex}
-            renderScene={SceneMap({ first: firstRoute, second: secondRoute })}
-            initialLayout={{ width: "100%" }}
-            renderTabBar={tabBar}
-          />
-        </View>
+        <ScreenWrapper>
+          <View style={{ flex: 1 }}>
+            <TabView
+              navigationState={{ index, routes }}
+              onIndexChange={setIndex}
+              renderScene={SceneMap({ first: firstRoute, second: secondRoute })}
+              initialLayout={{ width: "100%" }}
+              renderTabBar={tabBar}
+            />
+          </View>
+        </ScreenWrapper>
       </Drawer>
     </SafeAreaView>
   );
