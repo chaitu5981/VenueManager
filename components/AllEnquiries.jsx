@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Typo from "./Typo";
 import { fetchDate, fetchDate1, formatDate } from "../utils/helper";
 import { colors } from "../data/theme";
@@ -17,7 +17,8 @@ import CustomButton from "./CustomButton";
 import { getAllEnquiries } from "../store/enquirySlice";
 import { Toast } from "toastify-react-native";
 import Loader from "./Loader";
-const types = ["All", "Lead", "Confirmed", "Not-interested"];
+import ScreenWrapper from "./ScreenWrapper";
+const statuses = ["All", "Lead", "Confirmed", "Not-interested"];
 const AllEnquiries = () => {
   const { enquiries, loading, totalCount } = useSelector(
     (state) => state.enquiry
@@ -27,7 +28,7 @@ const AllEnquiries = () => {
   } = useSelector((state) => state.user);
   const [index, setIndex] = useState(0);
   const [page, setPage] = useState(1);
-  const [type, setType] = useState("All");
+  const [status, setStatus] = useState("All");
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -38,11 +39,10 @@ const AllEnquiries = () => {
     if (res.status_code !== 200) Toast.error(res.message);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchEnquiries(page, type);
-    }, [page, type])
-  );
+  useEffect(() => {
+    fetchEnquiries(page, status);
+  }, [page, status]);
+
   const goToPrevPage = () => {
     if (page > 1) setPage(page - 1);
   };
@@ -57,12 +57,12 @@ const AllEnquiries = () => {
         gap: 5,
       }}
     >
-      {types.map((type, i) => (
+      {statuses.map((status, i) => (
         <TouchableOpacity
           onPress={() => {
             setIndex(i);
             setPage(1);
-            setType(type);
+            setStatus(status);
           }}
           key={i}
           style={[
@@ -74,7 +74,7 @@ const AllEnquiries = () => {
         >
           <View style={{ flexDirection: "row", gap: 2, alignItems: "center" }}>
             <Typo size={14} color={index == i && "white"}>
-              {type}
+              {status}
             </Typo>
           </View>
         </TouchableOpacity>
@@ -207,13 +207,13 @@ const AllEnquiries = () => {
   };
 
   return (
-    <View style={{ flex: 1, gap: 20 }}>
+    <ScreenWrapper refreshApi={() => fetchEnquiries(page, status)}>
       <Typo size={20} weight={800}>
         All Enquiries
       </Typo>
       <TabBar />
       <EnquiriesList />
-    </View>
+    </ScreenWrapper>
   );
 };
 

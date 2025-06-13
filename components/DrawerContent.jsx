@@ -108,7 +108,7 @@ const DrawerContent = ({ hideDrawer }) => {
   ];
   const { user } = useSelector((state) => state.user);
   return (
-    <View style={{ flex: 1, gap: 20, paddingHorizontal: 10 }}>
+    <View style={{ flex: 1, gap: 20, padding: 10 }}>
       <View style={styles.profileContainer}>
         <Image
           source={require("../assets/profile.jpg")}
@@ -169,10 +169,7 @@ const DrawerContent = ({ hideDrawer }) => {
               )}
             </TouchableOpacity>
             {showSubMenu && item.isSubMenu && (
-              <ScrollView
-                contentContainerStyle={styles.subMenu}
-                nestedScrollEnabled
-              >
+              <View style={styles.subMenu}>
                 {item.subMenu.map((item) => (
                   <TouchableOpacity
                     key={item.label}
@@ -194,7 +191,7 @@ const DrawerContent = ({ hideDrawer }) => {
                     <Typo weight={800}>{item.label}</Typo>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             )}
           </View>
         ))}

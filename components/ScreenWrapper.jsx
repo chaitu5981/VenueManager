@@ -1,14 +1,21 @@
+import { useState } from "react";
 import { Platform } from "react-native";
 import {
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   StatusBar,
+  RefreshControl,
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { View, Text } from "react-native";
-const ScreenWrapper = ({ children, customStyle }) => {
+const ScreenWrapper = ({ children, customStyle, refreshApi = () => {} }) => {
+  const [refresh, setRefresh] = useState(false);
+  const onRefresh = async () => {
+    setRefresh(true);
+    await refreshApi();
+    setRefresh(false);
+  };
   return (
     <KeyboardAvoidingView
       style={[{ flex: 1, width: "100%" }]}
@@ -19,9 +26,13 @@ const ScreenWrapper = ({ children, customStyle }) => {
         style={{ width: "100%" }}
       >
         <ScrollView
+          bounces={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.container]}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refresh} onRefresh={onRefresh} />
+          }
         >
           {children}
         </ScrollView>
@@ -35,7 +46,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
     paddingTop: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     gap: 10,
     width: "100%",
     backgroundColor: "white",

@@ -84,16 +84,19 @@ const CustomSelect = ({
                 {loading ? (
                   <ActivityIndicator style={{ marginTop: 20 }} />
                 ) : showAddBtn ? (
-                  <Button
-                    onPress={() => {
-                      Keyboard.dismiss();
-                      setSearch("");
-                      setModalVisible(false);
-                      setShowAddMissingForm(true);
-                    }}
-                  >
-                    Add City
-                  </Button>
+                  <View>
+                    <Typo position={"center"}>City not found</Typo>
+                    <Button
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        setSearch("");
+                        setModalVisible(false);
+                        setShowAddMissingForm(true);
+                      }}
+                    >
+                      Add City
+                    </Button>
+                  </View>
                 ) : (
                   <FlatList
                     nestedScrollEnabled
@@ -132,7 +135,10 @@ const CustomSelect = ({
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <Typo position={"center"}>Add City</Typo>
-              <CustomTextInput onChange={(v) => setNewItem(v)} />
+              <CustomTextInput
+                onChange={(v) => setNewItem(v)}
+                label={"New City"}
+              />
               <Button
                 loading={addMissingLoading}
                 onPress={async () => {
