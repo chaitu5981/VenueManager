@@ -21,7 +21,6 @@ const DisplayInfo = ({ label, value }) => (
 );
 const AddEvents = () => {
   const { enquiryId = null, editing = false } = useLocalSearchParams();
-  // console.log(enquiryId, "search params");
   const [addEventsLoading, setAddEventsLoading] = useState(false);
   const [enquiry, setEnquiry] = useState({
     name: "",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import Typo from "./Typo";
-// import Modal from "react-native-modal";
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Calendar } from "react-native-calendars";
@@ -16,8 +15,11 @@ import { ScrollView } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
 import { fetchDate, fetchDate1, formatDate } from "../utils/helper";
 const DatePicker = ({ eventDates, onChange }) => {
-  const selectedDates = eventDates.map((d) => formatDate(d));
-  const [markedDates, setMarkedDates] = useState(selectedDates);
+  const selectedDates = useMemo(
+    () => eventDates.map((d) => formatDate(d)),
+    [eventDates]
+  );
+  const [markedDates, setMarkedDates] = useState([]);
 
   const [showPicker, setShowPicker] = useState(false);
   const addMarkedDate = (day) => {
@@ -45,6 +47,9 @@ const DatePicker = ({ eventDates, onChange }) => {
     setMarkedDates([...selectedDates]);
     setShowPicker(false);
   };
+  useEffect(() => {
+    setMarkedDates([...selectedDates]);
+  }, [selectedDates]);
   return (
     <View style={styles.dateContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>

@@ -92,10 +92,12 @@ const EventForm = ({ eventDates, submitEnquiry, loading, events, editing }) => {
   const eventsToSend = useRef([]);
   const router = useRouter();
   const { subVenues } = useSelector((state) => state.user);
-  const subVenuesData = subVenues.map((subVenue) => ({
-    label: `${subVenue.sub_venue_name}-${subVenue.sub_venue_capacity}`,
-    value: subVenue,
-  }));
+  const subVenuesData = subVenues
+    .filter((sv) => sv.sub_venue_status == "Active")
+    .map((subVenue) => ({
+      label: `${subVenue.sub_venue_name}-${subVenue.sub_venue_capacity}`,
+      value: subVenue,
+    }));
   const eventDatesData = eventDates.map((date) => ({
     value: date,
     label: formatDate(date),
