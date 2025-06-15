@@ -22,7 +22,7 @@ const DrawerContent = ({ hideDrawer, setSignoutState }) => {
   const handleSignOut = async () => {
     try {
       await AsyncStorage.removeItem("userId");
-      setSignoutState(false);
+      setSignoutState(true);
       dispatch(logout());
       setTimeout(() => {
         router.dismissAll();

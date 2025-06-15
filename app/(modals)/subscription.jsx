@@ -19,7 +19,6 @@ const Subscription = () => {
   const [loading, setLoading] = useState(false);
 
   const { user } = useSelector((state) => state.user);
-  console.log(user);
   const makePayment = async () => {
     try {
       setLoading(true);
@@ -28,7 +27,7 @@ const Subscription = () => {
         { user_id: user.user_id, plan_name: plan.type, amount: plan.charge }
       );
       if (data.status_code == 200) {
-        console.log(data);
+        // console.log(data);
         const options = {
           key: "rzp_test_Dxfv0usmma0Jzv",
           amount: String(data.amount_due),
