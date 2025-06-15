@@ -15,16 +15,19 @@ import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout } from "../store/userSlice";
 import { useState, memo } from "react";
-const DrawerContent = ({ hideDrawer }) => {
+const DrawerContent = ({ hideDrawer, setSignoutState }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [showSubMenu, setShowSubMenu] = useState(false);
   const handleSignOut = async () => {
     try {
       await AsyncStorage.removeItem("userId");
-      router.dismissAll();
-      router.replace("/");
-      setTimeout(() => dispatch(logout()), 50);
+      setSignoutState(false);
+      dispatch(logout());
+      setTimeout(() => {
+        router.dismissAll();
+        router.replace("/");
+      }, 50);
     } catch (error) {
       Alert.alert("error", error);
     }
@@ -115,18 +118,24 @@ const DrawerContent = ({ hideDrawer }) => {
           style={styles.profileImg}
         />
         <View style={{ flex: 1 }}>
-          <Typo>{user.name}</Typo>
-          <Typo>{user.mobile_no}</Typo>
+          <Typo>{user?.name}</Typo>
+          <Typo>{user?.mobile_no}</Typo>
         </View>
       </View>
       <View style={styles.upgrade}>
-        <MaterialCommunityIcons name="crown-outline" size={35} color="white" />
-        <View>
-          <Typo color={"white"} size={10}>
-            YOU ARE CURRENTLY ON FREE PLAN
-          </Typo>
-          <Typo color={"white"}>UPGRADE NOW</Typo>
-        </View>
+        <TouchableOpacity onPress={() => router.push("/(modals)/subscription")}>
+          <MaterialCommunityIcons
+            name="crown-outline"
+            size={35}
+            color="white"
+          />
+          <View>
+            <Typo color={"white"} size={10}>
+              YOU ARE CURRENTLY ON FREE PLAN
+            </Typo>
+            <Typo color={"white"}>UPGRADE NOW</Typo>
+          </View>
+        </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={{ gap: 20 }} nestedScrollEnabled>
         {menuItems.map((item) => (

@@ -31,20 +31,24 @@ export const businessLabelTypes = [
   { value: "VAT", label: "VAT" },
 ];
 export const months = [
-  { label: "Jan", value: "0" },
-  { label: "Feb", value: "1" },
-  { label: "Mar", value: "2" },
-  { label: "Apr", value: "3" },
-  { label: "May", value: "4" },
-  { label: "Jun", value: "5" },
-  { label: "Jul", value: "6" },
-  { label: "Aug", value: "7" },
-  { label: "Sep", value: "8" },
-  { label: "Oct", value: "9" },
-  { label: "Nov", value: "10" },
-  { label: "Dec", value: "11" },
+  { label: "Jan", value: 0 },
+  { label: "Feb", value: 1 },
+  { label: "Mar", value: 2 },
+  { label: "Apr", value: 3 },
+  { label: "May", value: 4 },
+  { label: "Jun", value: 5 },
+  { label: "Jul", value: 6 },
+  { label: "Aug", value: 7 },
+  { label: "Sep", value: 8 },
+  { label: "Oct", value: 9 },
+  { label: "Nov", value: 10 },
+  { label: "Dec", value: 11 },
 ];
-
+export const subscriptionTypes = [
+  { type: "Monthly", charge: "200" },
+  { type: "Quarterly", charge: "600" },
+  { type: "Yearly", charge: "2000" },
+];
 export const eventTypes = [
   {
     value: "traditional",

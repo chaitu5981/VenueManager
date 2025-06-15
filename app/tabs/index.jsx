@@ -8,7 +8,8 @@ import {
 import Header from "../../components/Header";
 import PagerView from "react-native-pager-view";
 import { useEffect, useRef, useState } from "react";
-import { colors, months } from "../../data/theme";
+import { colors } from "../../data/theme";
+import { months } from "../../data/constants";
 import { Calendar } from "react-native-calendars";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Typo from "../../components/Typo";
@@ -24,28 +25,83 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { Toast } from "toastify-react-native";
 import Loader from "../../components/Loader";
+import { Picker } from "@react-native-picker/picker";
+
 const slots = ["Breakfast", "Lunch", "Dinner"];
 const Home = () => {
   const [showCal, setShowCal] = useState(true);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [markedDate, setMarkedDate] = useState({
+    [formatDate(new Date())]: { selected: true },
+  });
   const [viewDate, setViewDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [index, setIndex] = useState(0);
   const [availability, setAvailability] = useState([]);
   const pageRef = useRef(null);
   const router = useRouter();
-  const {
-    user: { user_id: userId },
-  } = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.user);
+  const userId = user?.user_id;
+  const now = new Date();
+  const years = Array(10)
+    .fill(null)
+    .map((_, i) => now.getFullYear() - 4 + i);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [currentDate, setCurrentDate] = useState("");
+  const [signoutState, setSignoutState] = useState(false);
+  useEffect(() => {
+    setCurrentDate(
+      `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`
+    );
+  }, [selectedMonth, selectedYear]);
   const FirstRoute = () => (
     <ScreenWrapper>
       <Calendar
-        current={formatDate(selectedDate)}
-        onDayPress={(day) => setSelectedDate(new Date(day.dateString))}
-        markedDates={{
-          [formatDate(selectedDate)]: { selected: true },
+        current={currentDate}
+        key={selectedDate}
+        onMonthChange={(day) => {
+          setSelectedMonth(day.month - 1);
+          setSelectedYear(day.year);
         }}
+        onDayPress={(day) => {
+          setSelectedDate(new Date(day.dateString));
+          setMarkedDate({ [day.dateString]: { selected: true } });
+        }}
+        markedDates={markedDate}
+        renderHeader={() => (
+          <View
+            style={{
+              height: 60,
+              width: "80%",
+              flexDirection: "row",
+              justifyContent: "center",
+              paddingVertical: 0,
+            }}
+          >
+            <Picker
+              selectedValue={selectedMonth}
+              onValueChange={(v) => setSelectedMonth(v)}
+              style={{ color: "black", height: "100%", width: "50%" }}
+              dropdownIconColor={"black"}
+            >
+              {months.map((m) => (
+                <Picker.Item label={m.label} value={m.value} key={m.value} />
+              ))}
+            </Picker>
+            <Picker
+              selectedValue={selectedYear}
+              onValueChange={(v) => setSelectedYear(v)}
+              style={{ color: "black", height: "100%", width: "50%" }}
+              dropdownIconColor={"black"}
+            >
+              {years.map((y) => (
+                <Picker.Item key={y} label={y} value={y}></Picker.Item>
+              ))}
+            </Picker>
+          </View>
+        )}
       />
       <CustomButton
         text={"Add Enquiry"}
@@ -162,6 +218,7 @@ const Home = () => {
   useEffect(() => {
     fetchAvailability();
   }, [selectedDate]);
+  if (signoutState) return <></>;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <Drawer
@@ -172,7 +229,10 @@ const Home = () => {
         onOpen={() => setOpenSidebar(true)}
         onClose={() => setOpenSidebar(false)}
         renderDrawerContent={() => (
-          <DrawerContent hideDrawer={() => setOpenSidebar(false)} />
+          <DrawerContent
+            hideDrawer={() => setOpenSidebar(false)}
+            setSignoutState={setSignoutState}
+          />
         )}
       >
         <View style={{ flexDirection: "row", gap: 30 }}>

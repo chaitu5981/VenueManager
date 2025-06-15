@@ -23,9 +23,8 @@ const AllEnquiries = () => {
   const { enquiries, loading, totalCount } = useSelector(
     (state) => state.enquiry
   );
-  const {
-    user: { user_id: userId },
-  } = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.user);
+  const userId = user?.user_id;
   const [index, setIndex] = useState(0);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("All");
